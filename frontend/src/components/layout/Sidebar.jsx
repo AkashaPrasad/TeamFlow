@@ -4,6 +4,7 @@ import { LayoutGrid, CheckSquare, FolderKanban, Settings, LogOut, BookOpen, X, M
 import { useAuth } from '../../contexts/AuthContext'
 import { useTeam } from '../../contexts/TeamContext'
 import { Avatar } from '../ui/Avatar'
+import { BrandLogo } from '../ui/BrandLogo'
 import { cn } from '../../lib/utils'
 
 const NAV = [
@@ -30,11 +31,7 @@ export function Sidebar({ open, onClose }) {
       {/* Team header */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/60 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-7 h-7 shrink-0 rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-sm shadow-brand-500/25">
-            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
-              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
+          <BrandLogo size="sm" />
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-zinc-900 dark:text-white truncate leading-tight">
               {team?.name || 'TeamPost'}

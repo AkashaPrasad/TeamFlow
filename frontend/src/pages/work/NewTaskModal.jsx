@@ -16,10 +16,13 @@ function normalizeStatus(status) {
 }
 
 function buildForm(task, defaultStatus) {
+  const multiAssigneeIds = task?.task_assignees?.map((assignment) => assignment.user_id) || []
   return {
     title: task?.title || '',
     description: task?.description || '',
     assignee_id: task?.assignee_id || '',
+    assignee_ids: multiAssigneeIds,
+    use_multi_assignees: multiAssigneeIds.length > 0,
     priority: task?.priority || 'medium',
     status: normalizeStatus(task?.status || defaultStatus),
     due_date: task?.due_date || '',
@@ -66,15 +69,37 @@ export function NewTaskModal({
   // Persist draft for new tasks only
   useEffect(() => {
     if (!open || isEditing) return
-    const { reopen_note, ...draftable } = form
+    const draftable = { ...form }
+    delete draftable.reopen_note
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draftable))
   }, [form, open, isEditing])
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
   const wasCouldntDo = task?.status === 'couldnt_do'
   const assigneeChanged = isEditing && (task.assignee_id || '') !== (form.assignee_id || '')
+  const multiAssigneesChanged = isEditing && JSON.stringify(task?.task_assignees?.map((assignment) => assignment.user_id) || []) !== JSON.stringify(form.assignee_ids)
   const statusChanged = isEditing && task.status !== form.status
-  const reopenedFromCouldntDo = wasCouldntDo && (assigneeChanged || statusChanged)
+  const reopenedFromCouldntDo = wasCouldntDo && (assigneeChanged || multiAssigneesChanged || statusChanged)
+
+  function toggleMultiAssign(enabled) {
+    setForm((current) => ({
+      ...current,
+      use_multi_assignees: enabled,
+      assignee_ids: enabled
+        ? Array.from(new Set([...(current.assignee_ids || []), ...(current.assignee_id ? [current.assignee_id] : [])]))
+        : [],
+      assignee_id: enabled ? '' : current.assignee_id,
+    }))
+  }
+
+  function toggleAssignee(userId) {
+    setForm((current) => {
+      const nextIds = current.assignee_ids.includes(userId)
+        ? current.assignee_ids.filter((id) => id !== userId)
+        : [...current.assignee_ids, userId]
+      return { ...current, assignee_ids: nextIds, assignee_id: '' }
+    })
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -88,7 +113,7 @@ export function NewTaskModal({
       const payload = {
         title: form.title.trim(),
         description: form.description || null,
-        assignee_id: form.assignee_id || null,
+        assignee_id: form.use_multi_assignees ? null : form.assignee_id || null,
         priority: form.priority,
         status:
           wasCouldntDo && assigneeChanged && form.status === 'couldnt_do'
@@ -106,6 +131,14 @@ export function NewTaskModal({
       } else {
         const { task: created } = await api.createTask(team.id, payload)
         savedTask = created
+      }
+
+      if (form.use_multi_assignees) {
+        const { task: updatedTask } = await api.setTaskAssignees(savedTask.id, form.assignee_ids)
+        savedTask = updatedTask
+      } else if (task?.task_assignees?.length) {
+        const { task: updatedTask } = await api.setTaskAssignees(savedTask.id, [])
+        savedTask = updatedTask
       }
 
       if (isEditing && reopenedFromCouldntDo) {
@@ -149,12 +182,38 @@ export function NewTaskModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Assign to</label>
-            <select value={form.assignee_id} onChange={(e) => set('assignee_id', e.target.value)} className="input">
-              <option value="">Unassigned</option>
-              {members.map((m) => (
-                <option key={m.user_id} value={m.user_id}>{m.profiles?.name}</option>
-              ))}
-            </select>
+            {!form.use_multi_assignees ? (
+              <select value={form.assignee_id} onChange={(e) => set('assignee_id', e.target.value)} className="input">
+                <option value="">Unassigned</option>
+                {members.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>{m.profiles?.name}</option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/40 p-3 space-y-2 max-h-48 overflow-y-auto">
+                {members.map((member) => {
+                  const checked = form.assignee_ids.includes(member.user_id)
+                  return (
+                    <label key={member.user_id} className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleAssignee(member.user_id)}
+                        className="rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
+                      />
+                      <span className="text-sm text-zinc-700 dark:text-zinc-200">{member.profiles?.name}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => toggleMultiAssign(!form.use_multi_assignees)}
+              className="mt-2 text-xs text-brand-600 dark:text-brand-400 hover:underline"
+            >
+              {form.use_multi_assignees ? 'Use single assignee' : 'Assign to multiple people'}
+            </button>
           </div>
           <div>
             <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Priority</label>

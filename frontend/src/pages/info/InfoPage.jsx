@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -15,9 +15,12 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, Eye, EyeOff, Copy, Check, Trash2, Link, Pin, PinOff, GripVertical, BookOpen, X } from 'lucide-react'
+import {
+  Plus, Eye, EyeOff, Copy, Check, Trash2, Link, Pin, PinOff, GripVertical,
+  BookOpen, Film, FileText, Loader2, Upload, Download,
+} from 'lucide-react'
 import { api } from '../../lib/api'
-import { uploadToCloudinary } from '../../lib/cloudinary'
+import { uploadToCloudinary, uploadFileToCloudinary } from '../../lib/cloudinary'
 import { useTeam } from '../../contexts/TeamContext'
 import { useRealtime } from '../../hooks/useRealtime'
 import { INFO_TYPES, API_PROVIDERS } from '../../lib/constants'
@@ -27,7 +30,7 @@ import { Avatar } from '../../components/ui/Avatar'
 import { cn } from '../../lib/utils'
 import toast from 'react-hot-toast'
 
-function InfoCardContent({ item, onPin, onDelete }) {
+function InfoCardContent({ item, onPin, onDelete, dragHandle = null }) {
   const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
   const typeInfo = INFO_TYPES.find((t) => t.id === item.type)
@@ -65,6 +68,29 @@ function InfoCardContent({ item, onPin, onDelete }) {
         return item.content ? (
           <img src={item.content} alt={item.title} className="w-full h-40 object-cover rounded-lg mt-2" />
         ) : <p className="text-xs text-zinc-400 mt-2">No image</p>
+
+      case 'video':
+        return item.content ? (
+          <video
+            src={item.content}
+            controls
+            className="w-full rounded-lg mt-2 max-h-48 bg-black"
+          />
+        ) : <p className="text-xs text-zinc-400 mt-2">No video</p>
+
+      case 'document':
+        return item.content ? (
+          <a
+            href={item.content}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 flex items-center gap-2.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+          >
+            <FileText className="w-4 h-4 shrink-0" />
+            <span className="truncate flex-1">{item.title}</span>
+            <Download className="w-3.5 h-3.5 shrink-0" />
+          </a>
+        ) : <p className="text-xs text-zinc-400 mt-2">No file</p>
 
       case 'api_key':
         return (
@@ -129,6 +155,7 @@ function InfoCardContent({ item, onPin, onDelete }) {
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {dragHandle}
           <button
             onClick={handlePin}
             className={cn(
@@ -182,25 +209,68 @@ function SortableInfoCard({ item, onPin, onDelete }) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
-    position: 'relative',
     zIndex: isDragging ? 50 : 'auto',
   }
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div className="relative">
-        <button
-          {...attributes}
-          {...listeners}
-          className="absolute top-3 left-3 z-10 p-1 text-zinc-200 dark:text-zinc-700 hover:text-zinc-400 dark:hover:text-zinc-400 cursor-grab active:cursor-grabbing transition-colors"
-          title="Drag to reorder"
-        >
-          <GripVertical className="w-3.5 h-3.5" />
-        </button>
-        <div className="pl-5">
-          <InfoCardContent item={item} onPin={onPin} onDelete={onDelete} />
-        </div>
+      <InfoCardContent
+        item={item}
+        onPin={onPin}
+        onDelete={onDelete}
+        dragHandle={(
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-300 cursor-grab active:cursor-grabbing transition-colors touch-none"
+            title="Drag to reorder"
+          >
+            <GripVertical className="w-3.5 h-3.5" />
+          </button>
+        )}
+      />
+    </div>
+  )
+}
+
+function UploadZone({ accept, onUpload, uploading, preview, previewType, label }) {
+  const inputRef = useRef(null)
+
+  return (
+    <div>
+      <div
+        onClick={() => !uploading && inputRef.current?.click()}
+        className={cn(
+          'border-2 border-dashed rounded-xl p-4 text-center transition-colors cursor-pointer',
+          uploading
+            ? 'border-brand-300 bg-brand-50/40 dark:bg-brand-900/10 cursor-not-allowed'
+            : 'border-zinc-200 dark:border-zinc-700 hover:border-brand-400 hover:bg-brand-50/30 dark:hover:border-brand-600 dark:hover:bg-brand-900/10'
+        )}
+      >
+        {uploading ? (
+          <div className="flex flex-col items-center gap-1.5">
+            <Loader2 className="w-5 h-5 text-brand-500 animate-spin" />
+            <p className="text-xs text-brand-600 dark:text-brand-400 font-medium">Uploading…</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-1.5">
+            <Upload className="w-5 h-5 text-zinc-400" />
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">{label}</p>
+          </div>
+        )}
       </div>
+      <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={onUpload} />
+      {preview && previewType === 'video' && (
+        <video src={preview} controls className="mt-2 w-full rounded-lg max-h-36 bg-black" />
+      )}
+      {preview && previewType === 'document' && (
+        <a href={preview} target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-2 text-xs text-brand-600 dark:text-brand-400 hover:underline">
+          <FileText className="w-3.5 h-3.5" /> Preview / Download
+        </a>
+      )}
+      {preview && previewType === 'image' && (
+        <img src={preview} alt="" className="mt-2 h-24 rounded-lg object-cover" />
+      )}
     </div>
   )
 }
@@ -220,13 +290,27 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
     setType('text'); setTitle(''); setContent(''); setNote(''); setProvider(''); setTaskId('')
   }
 
-  async function handlePhotoChange(e) {
+  async function handleImageUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
     try {
       const { url } = await uploadToCloudinary(file, 'teampost/info')
       setContent(url)
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function handleFileUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const result = await uploadFileToCloudinary(file, 'teampost/info')
+      setContent(result.url)
     } catch (err) {
       toast.error(err.message)
     } finally {
@@ -262,13 +346,40 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
     switch (type) {
       case 'photo':
         return (
-          <div>
-            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Image</label>
-            <input type="file" accept="image/*" onChange={handlePhotoChange} className="input" />
-            {uploading && <p className="text-xs text-zinc-400 mt-1">Uploading…</p>}
-            {content && <img src={content} alt="" className="mt-2 h-24 rounded-lg object-cover" />}
-          </div>
+          <UploadZone
+            accept="image/*"
+            onUpload={handleImageUpload}
+            uploading={uploading}
+            preview={content}
+            previewType="image"
+            label="Click to upload image (PNG, JPG, GIF…)"
+          />
         )
+
+      case 'video':
+        return (
+          <UploadZone
+            accept="video/*"
+            onUpload={handleFileUpload}
+            uploading={uploading}
+            preview={content}
+            previewType="video"
+            label="Click to upload video (MP4, MOV, WebM…)"
+          />
+        )
+
+      case 'document':
+        return (
+          <UploadZone
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.*"
+            onUpload={handleFileUpload}
+            uploading={uploading}
+            preview={content}
+            previewType="document"
+            label="Click to upload PDF, Word, Excel or any document"
+          />
+        )
+
       case 'api_key':
         return (
           <>
@@ -287,6 +398,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
             </div>
           </>
         )
+
       case 'number':
         return (
           <div>
@@ -294,6 +406,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
             <input type="number" value={content} onChange={(e) => setContent(e.target.value)} placeholder="0" className="input" />
           </div>
         )
+
       case 'prompt':
       case 'claude_skill':
         return (
@@ -310,6 +423,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
             />
           </div>
         )
+
       default:
         return (
           <div>
@@ -331,34 +445,38 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide">Type</label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {INFO_TYPES.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => { setType(t.id); setContent(''); setProvider('') }}
                 className={cn(
-                  'flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all',
+                  'flex flex-col items-center gap-1 p-2 rounded-xl border text-center transition-all',
                   type === t.id
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400'
                     : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-500'
                 )}
               >
-                <span className="text-lg">{t.icon}</span>
-                <span className="text-xs font-medium leading-tight">{t.label}</span>
+                <span className="text-base">{t.icon}</span>
+                <span className="text-[10px] font-medium leading-tight">{t.label}</span>
               </button>
             ))}
           </div>
         </div>
+
         <div>
           <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Title *</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Groq API Key" className="input" required />
         </div>
+
         {renderContentField()}
+
         <div>
           <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Note</label>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note…" rows={3} className="input resize-none" />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note…" rows={2} className="input resize-none" />
         </div>
+
         {tasks.length > 0 && (
           <div>
             <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Link to task (optional)</label>
@@ -368,6 +486,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
             </select>
           </div>
         )}
+
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={() => { reset(); onClose() }} className="btn-secondary">Cancel</button>
           <button type="submit" disabled={saving || uploading} className="btn-primary">
@@ -423,13 +542,11 @@ export default function InfoPage() {
   const pinned = allDisplayed.filter((i) => i.pinned)
   const unpinned = allDisplayed.filter((i) => !i.pinned)
   const displayed = [...pinned, ...unpinned]
-
   const activeItem = items.find((i) => i.id === activeId)
 
   function handleDragEnd({ active, over }) {
     setActiveId(null)
     if (!over || active.id === over.id) return
-
     setItems((prev) => {
       const oldIndex = prev.findIndex((i) => i.id === active.id)
       const newIndex = prev.findIndex((i) => i.id === over.id)
@@ -447,7 +564,7 @@ export default function InfoPage() {
       <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <div>
           <h2 className="section-title">Info</h2>
-          <p className="section-subtitle">Team knowledge base — API keys, prompts, notes</p>
+          <p className="section-subtitle">Team knowledge base — API keys, prompts, docs and media</p>
         </div>
         <button onClick={() => setShowModal(true)} className="btn-primary">
           <Plus className="w-4 h-4" />
@@ -456,11 +573,11 @@ export default function InfoPage() {
       </div>
 
       {/* Type filter */}
-      <div className="flex gap-1 mb-5 overflow-x-auto pb-1">
+      <div className="flex gap-1 mb-5 overflow-x-auto pb-1 -mx-1 px-1">
         <button
           onClick={() => setFilter('')}
           className={cn(
-            'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors',
+            'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0',
             filter === '' ? 'bg-brand-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
           )}
         >
@@ -474,7 +591,7 @@ export default function InfoPage() {
               key={t.id}
               onClick={() => setFilter(t.id)}
               className={cn(
-                'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1',
+                'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1 shrink-0',
                 filter === t.id ? 'bg-brand-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
               )}
             >
@@ -485,7 +602,7 @@ export default function InfoPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-4 animate-pulse">
               <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2 mb-3" />
@@ -514,7 +631,7 @@ export default function InfoPage() {
           onDragCancel={() => setActiveId(null)}
         >
           <SortableContext items={displayed.map((i) => i.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {displayed.map((item) => (
                 <SortableInfoCard key={item.id} item={item} onPin={handlePin} onDelete={handleDelete} />
               ))}

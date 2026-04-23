@@ -270,19 +270,19 @@ export default function Chat() {
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex h-full flex-col md:flex-row overflow-hidden">
       {/* Conversation list */}
-      <div className="w-56 shrink-0 border-r border-zinc-100 dark:border-zinc-800/60 flex flex-col bg-white dark:bg-zinc-950">
+      <div className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-zinc-100 dark:border-zinc-800/60 flex flex-col bg-white dark:bg-zinc-950">
         <div className="px-4 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60">
           <h2 className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Messages</h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-1.5">
+        <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto py-1.5">
           {/* Team chat */}
           <button
             onClick={() => setActiveConv('team')}
             className={cn(
-              'w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors text-left',
+              'flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors text-left shrink-0 md:w-full',
               activeConv === 'team'
                 ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 font-medium'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
@@ -297,7 +297,7 @@ export default function Chat() {
           {/* DM section */}
           {otherMembers.length > 0 && (
             <>
-              <div className="px-3 pt-3 pb-1">
+              <div className="px-3 pt-3 pb-1 shrink-0">
                 <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Direct</p>
               </div>
               {otherMembers.map((m) => {
@@ -307,7 +307,7 @@ export default function Chat() {
                     key={m.user_id}
                     onClick={() => setActiveConv(m.user_id)}
                     className={cn(
-                      'w-full flex items-center gap-2.5 px-3 py-2 transition-colors text-left',
+                      'flex items-center gap-2.5 px-3 py-2 transition-colors text-left shrink-0 md:w-full',
                       activeConv === m.user_id
                         ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400'
                         : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
@@ -331,7 +331,7 @@ export default function Chat() {
       </div>
 
       {/* Message thread */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-zinc-950">
+      <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-zinc-950 min-h-0">
         {/* Thread header */}
         <div className="h-14 px-5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center gap-3 shrink-0">
           {activeConv === 'team' ? (
@@ -356,7 +356,7 @@ export default function Chat() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-3">
           {loadingMsgs ? (
             <div className="flex items-center justify-center h-full">
               <Loader2 className="w-5 h-5 text-zinc-300 animate-spin" />
@@ -392,7 +392,7 @@ export default function Chat() {
         </div>
 
         {/* Input bar */}
-        <div className="px-4 pb-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/60">
+        <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/60">
           {pendingFile && (
             <div className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl px-3 py-2 mb-2">
               <Paperclip className="w-3.5 h-3.5 text-brand-500 shrink-0" />

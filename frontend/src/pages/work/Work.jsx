@@ -4,6 +4,7 @@ import { api } from '../../lib/api'
 import { useTeam } from '../../contexts/TeamContext'
 import { useRealtime } from '../../hooks/useRealtime'
 import { TaskCard } from './TaskCard'
+import { SortableTaskList } from './SortableTaskList'
 import { KanbanView } from './KanbanView'
 import { CalendarView } from './CalendarView'
 import { PodsView } from './PodsView'
@@ -12,8 +13,10 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { CheckSquare } from 'lucide-react'
 import { TASK_PRIORITIES, TASK_STATUSES } from '../../lib/constants'
 import { cn } from '../../lib/utils'
+import toast from 'react-hot-toast'
 
 const SORT_OPTIONS = [
+  { id: 'manual', label: 'Manual order' },
   { id: 'created_desc', label: 'Newest first' },
   { id: 'due_asc', label: 'Due date ↑' },
   { id: 'due_desc', label: 'Due date ↓' },
@@ -22,7 +25,6 @@ const SORT_OPTIONS = [
 
 const MODE_OPTIONS = [
   { id: 'my_tasks', label: 'My Tasks' },
-  { id: 'assigned_to_me', label: 'Assigned' },
   { id: 'i_assigned', label: 'I Assigned' },
   { id: 'all', label: 'All' },
 ]
@@ -48,6 +50,13 @@ function sortTasks(tasks, sort) {
       return copy.sort(
         (a, b) => (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1)
       )
+    case 'manual':
+      return copy.sort((a, b) => {
+        const leftOrder = a.sort_order ?? Number.MAX_SAFE_INTEGER
+        const rightOrder = b.sort_order ?? Number.MAX_SAFE_INTEGER
+        if (leftOrder !== rightOrder) return leftOrder - rightOrder
+        return new Date(b.created_at) - new Date(a.created_at)
+      })
     default:
       return copy.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
   }
@@ -99,8 +108,31 @@ export default function Work() {
     setShowModal(true)
   }
 
+  async function handleReorder(activeId, overId) {
+    const oldIndex = displayedTasks.findIndex((task) => task.id === activeId)
+    const newIndex = displayedTasks.findIndex((task) => task.id === overId)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const nextDisplayed = [...displayedTasks]
+    const [moved] = nextDisplayed.splice(oldIndex, 1)
+    nextDisplayed.splice(newIndex, 0, moved)
+
+    const orderMap = new Map(nextDisplayed.map((task, index) => [task.id, index]))
+    setTasks((prev) => prev.map((task) => (
+      orderMap.has(task.id) ? { ...task, sort_order: orderMap.get(task.id) } : task
+    )))
+
+    try {
+      await api.reorderTasks(team.id, null, nextDisplayed.map((task) => task.id))
+    } catch (err) {
+      toast.error(err.message)
+      loadTasks()
+    }
+  }
+
   const activeFilters = Object.values(filters).some(Boolean)
   const displayedTasks = sortTasks(tasks, sort)
+  const reorderEnabled = view === 'list' && sort === 'manual' && !activeFilters
 
   const views = [
     { id: 'list', icon: List, label: 'List' },
@@ -224,7 +256,7 @@ export default function Work() {
         <EmptyState
           icon={CheckSquare}
           title="No tasks here"
-          description={mode === 'my_tasks' ? 'No tasks assigned to you or created by you yet.' : 'No tasks match this filter.'}
+          description={mode === 'my_tasks' ? 'No tasks assigned to you yet.' : 'No tasks match this filter.'}
           action={
             <button onClick={() => setShowModal(true)} className="btn-primary">
               <Plus className="w-4 h-4" />
@@ -233,13 +265,17 @@ export default function Work() {
           }
         />
       ) : view === 'list' ? (
-        <div className="space-y-3">
-          {displayedTasks.map((task, i) => (
-            <div key={task.id} className="animate-fade-up" style={{ animationDelay: `${i * 25}ms` }}>
-              <TaskCard task={task} onUpdate={handleUpdate} onDelete={handleDelete} />
-            </div>
-          ))}
-        </div>
+        reorderEnabled ? (
+          <SortableTaskList tasks={displayedTasks} onUpdate={handleUpdate} onDelete={handleDelete} onReorder={handleReorder} />
+        ) : (
+          <div className="space-y-3">
+            {displayedTasks.map((task, i) => (
+              <div key={task.id} className="animate-fade-up" style={{ animationDelay: `${i * 25}ms` }}>
+                <TaskCard task={task} onUpdate={handleUpdate} onDelete={handleDelete} />
+              </div>
+            ))}
+          </div>
+        )
       ) : view === 'kanban' ? (
         <KanbanView
           tasks={displayedTasks}
@@ -252,6 +288,10 @@ export default function Work() {
       ) : (
         <PodsView tasks={displayedTasks} members={members} onUpdate={handleUpdate} onDelete={handleDelete} />
       )}
+
+      {view === 'list' && sort === 'manual' && activeFilters ? (
+        <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">Clear filters to reorder tasks manually.</p>
+      ) : null}
 
       <NewTaskModal
         open={showModal}

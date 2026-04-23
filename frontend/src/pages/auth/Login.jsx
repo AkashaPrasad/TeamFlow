@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../../contexts/AuthContext'
 import { AuroraBackground } from '../../components/aceternity/AuroraBackground'
 import { Spotlight } from '../../components/aceternity/Spotlight'
+import { BrandLogo } from '../../components/ui/BrandLogo'
 import toast from 'react-hot-toast'
 import { useState } from 'react'
 
@@ -40,11 +41,7 @@ export default function Login() {
         className="relative z-10 w-full max-w-sm px-4"
       >
         <div className="text-center mb-8">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-500/30">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="currentColor">
-              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
+          <BrandLogo size="lg" className="justify-center mb-5" />
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Welcome back</h1>
           <p className="text-zinc-500 dark:text-zinc-400 mt-1.5 text-sm">Sign in to your workspace</p>
         </div>

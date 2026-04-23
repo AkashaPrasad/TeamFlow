@@ -44,6 +44,8 @@ export const INFO_TYPES = [
   { id: 'prompt', label: 'Prompt', icon: '💬', desc: 'AI prompts and templates' },
   { id: 'claude_skill', label: 'Claude Skill', icon: '🤖', desc: 'Claude instructions / skills' },
   { id: 'photo', label: 'Photo / Asset', icon: '🖼️', desc: 'Brand assets, images' },
+  { id: 'video', label: 'Video', icon: '🎥', desc: 'Team videos, demos' },
+  { id: 'document', label: 'Document', icon: '📄', desc: 'PDFs, files, docs' },
 ]
 
 export const API_PROVIDERS = [

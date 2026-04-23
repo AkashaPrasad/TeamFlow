@@ -1,5 +1,12 @@
-const CACHE = 'teampost-v1'
-const PRECACHE = ['/']
+const CACHE = 'teampost-v2'
+const PRECACHE = [
+  '/',
+  '/manifest.json',
+  '/favicon.ico',
+  '/apple-touch-icon.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
+]
 
 self.addEventListener('install', (e) => {
   e.waitUntil(

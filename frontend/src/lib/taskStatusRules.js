@@ -5,7 +5,7 @@ export const CREATOR_STATUS_OPTIONS = [
   { value: 'done', status: 'done', label: 'Done' },
 ]
 
-const ASSIGNEE_STATUS_OPTIONS = [
+export const ASSIGNEE_STATUS_OPTIONS = [
   { value: 'in_progress', status: 'in_progress', label: 'In Progress' },
   { value: 'couldnt_do', status: 'couldnt_do', label: "Couldn't Do" },
   { value: 'done', status: 'in_review', label: 'Done' },

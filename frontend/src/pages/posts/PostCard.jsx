@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow, format } from 'date-fns'
-import { ThumbsUp, MessageSquare, PenLine, CheckCircle, Calendar, ChevronDown, ChevronUp, Trash2, Send } from 'lucide-react'
+import { ThumbsUp, MessageSquare, PenLine, CheckCircle, Calendar, ChevronDown, ChevronUp, Trash2, Send, Download } from 'lucide-react'
 import { Avatar } from '../../components/ui/Avatar'
 import { Badge } from '../../components/ui/Badge'
 import { GlowingCard } from '../../components/aceternity/GlowingCard'
@@ -136,16 +136,44 @@ export function PostCard({ post, onUpdate, onDelete }) {
 
         {/* Images */}
         {images.length > 0 && (
-          <div className={`grid gap-2 mb-3.5 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-            {images.slice(0, 4).map((img, i) => (
-              <div key={img.id} className="relative cursor-pointer rounded-lg overflow-hidden" onClick={() => setLightbox(img.url)}>
-                <img src={img.url} alt="" className="w-full h-36 object-cover hover:scale-[1.02] transition-transform duration-300" />
-                {i === 3 && images.length > 4 && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">+{images.length - 4}</div>
-                )}
-              </div>
-            ))}
-          </div>
+          <>
+            <div className={`grid gap-2 mb-2 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              {images.slice(0, 4).map((img, i) => (
+                <div key={img.id} className="relative group cursor-pointer rounded-lg overflow-hidden" onClick={() => setLightbox(img.url)}>
+                  <img src={img.url} alt="" className="w-full h-36 object-cover hover:scale-[1.02] transition-transform duration-300" />
+                  {i === 3 && images.length > 4 && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">+{images.length - 4}</div>
+                  )}
+                  <a
+                    href={img.url}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Download image"
+                  >
+                    <Download className="w-3 h-3" />
+                  </a>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5 mb-3.5">
+              {images.map((img, i) => (
+                <a
+                  key={img.id}
+                  href={img.url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1 transition-colors"
+                >
+                  <Download className="w-3 h-3" />
+                  {images.length > 1 ? `Image ${i + 1}` : 'Download image'}
+                </a>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Schedule label */}

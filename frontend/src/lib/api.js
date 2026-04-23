@@ -5,7 +5,13 @@ const TASK_SELECT = `
   profiles!assignee_id(id, name, avatar_url),
   creator:profiles!created_by(id, name, avatar_url),
   projects(id, name),
-  task_comments(*, profiles(*))
+  task_comments(*, profiles(*)),
+  task_assignees(*, assignee:profiles!user_id(id, name, avatar_url))
+`
+
+const MESSAGE_SELECT = `
+  *,
+  sender:profiles!sender_id(id, name, avatar_url)
 `
 
 function randomInviteCode() {
@@ -25,6 +31,15 @@ async function fetchTaskById(taskId) {
     .single()
   if (error) throw new Error(error.message)
   return task
+}
+
+function sortTasksByOrder(tasks) {
+  return [...(tasks || [])].sort((left, right) => {
+    const leftOrder = left.sort_order ?? Number.MAX_SAFE_INTEGER
+    const rightOrder = right.sort_order ?? Number.MAX_SAFE_INTEGER
+    if (leftOrder !== rightOrder) return leftOrder - rightOrder
+    return new Date(right.created_at) - new Date(left.created_at)
+  })
 }
 
 export const api = {
@@ -176,13 +191,22 @@ export const api = {
       .from('tasks')
       .select(TASK_SELECT)
       .eq('team_id', teamId)
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false })
 
     // Filter modes
     if (params.mode === 'my_tasks') {
-      query = query.or(`assignee_id.eq.${userId},created_by.eq.${userId}`)
-    } else if (params.mode === 'assigned_to_me') {
-      query = query.eq('assignee_id', userId)
+      // Also include multi-assigned tasks where user is in task_assignees
+      const { data: assigneeRows } = await supabase
+        .from('task_assignees')
+        .select('task_id')
+        .eq('user_id', userId)
+      const multiTaskIds = assigneeRows?.map((r) => r.task_id) || []
+      if (multiTaskIds.length > 0) {
+        query = query.or(`assignee_id.eq.${userId},id.in.(${multiTaskIds.join(',')})`)
+      } else {
+        query = query.eq('assignee_id', userId)
+      }
     } else if (params.mode === 'i_assigned') {
       query = query.eq('created_by', userId)
     }
@@ -194,7 +218,7 @@ export const api = {
 
     const { data, error } = await query
     if (error) throw new Error(error.message)
-    return { tasks: data }
+    return { tasks: sortTasksByOrder(data) }
   },
 
   createTask: async (teamId, data) => {
@@ -231,6 +255,37 @@ export const api = {
     return {}
   },
 
+  setTaskAssignees: async (taskId, userIds) => {
+    const { error } = await supabase.rpc('set_task_assignees', {
+      p_task_id: taskId,
+      p_user_ids: userIds,
+    })
+    if (error) throw new Error(error.message)
+    const task = await fetchTaskById(taskId)
+    return { task }
+  },
+
+  updateAssigneeStatus: async (taskId, userId, status) => {
+    const { error } = await supabase.rpc('update_task_assignee_status', {
+      p_task_id: taskId,
+      p_user_id: userId,
+      p_status: status,
+    })
+    if (error) throw new Error(error.message)
+    const task = await fetchTaskById(taskId)
+    return { task }
+  },
+
+  reorderTasks: async (teamId, projectId, orderedIds) => {
+    const { error } = await supabase.rpc('reorder_tasks', {
+      p_team_id: teamId,
+      p_project_id: projectId ?? null,
+      p_task_ids: orderedIds,
+    })
+    if (error) throw new Error(error.message)
+    return {}
+  },
+
   addTaskComment: async (taskId, content) => {
     const { data: comment, error } = await supabase.rpc('create_task_comment', {
       p_task_id: taskId,
@@ -261,12 +316,12 @@ export const api = {
   getProject: async (teamId, projectId) => {
     const { data, error } = await supabase
       .from('projects')
-      .select('*, project_members(*, profiles(*)), tasks(*, profiles!assignee_id(id, name, avatar_url), creator:profiles!created_by(id, name, avatar_url), projects(id, name), task_comments(*, profiles(*)))')
+      .select(`*, project_members(*, profiles(*)), tasks(${TASK_SELECT})`)
       .eq('id', projectId)
       .eq('team_id', teamId)
       .single()
     if (error) throw new Error(error.message)
-    return { project: data }
+    return { project: { ...data, tasks: sortTasksByOrder(data.tasks) } }
   },
 
   createProject: async (teamId, data) => {
@@ -392,7 +447,7 @@ export const api = {
   getTeamMessages: async (teamId, limit = 60) => {
     const { data, error } = await supabase
       .from('team_messages')
-      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .select(MESSAGE_SELECT)
       .eq('team_id', teamId)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -405,7 +460,7 @@ export const api = {
     const { data: message, error } = await supabase
       .from('team_messages')
       .insert({ team_id: teamId, sender_id: userId, content, attachment })
-      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .select(MESSAGE_SELECT)
       .single()
     if (error) throw new Error(error.message)
     return { message }
@@ -422,7 +477,7 @@ export const api = {
     const userId = await currentUserId()
     const { data, error } = await supabase
       .from('direct_messages')
-      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .select(MESSAGE_SELECT)
       .eq('team_id', teamId)
       .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`)
       .order('created_at', { ascending: false })
@@ -436,7 +491,7 @@ export const api = {
     const { data: message, error } = await supabase
       .from('direct_messages')
       .insert({ team_id: teamId, sender_id: userId, receiver_id: receiverId, content, attachment })
-      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .select(MESSAGE_SELECT)
       .single()
     if (error) throw new Error(error.message)
     return { message }

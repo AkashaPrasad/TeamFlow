@@ -8,6 +8,7 @@ const TITLES = {
   '/work': 'Work',
   '/projects': 'Projects',
   '/info': 'Info',
+  '/chat': 'Chat',
   '/settings': 'Settings',
 }
 
@@ -21,7 +22,7 @@ export function Layout({ children }) {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopBar title={title} onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto">
+        <main className={`flex-1 ${pathname === '/chat' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {children}
         </main>
       </div>

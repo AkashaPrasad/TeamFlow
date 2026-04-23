@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { format, parseISO, differenceInDays } from 'date-fns'
-import { ArrowLeft, Plus, Target, Calendar } from 'lucide-react'
+import { ArrowLeft, GripVertical, Plus, Target, Calendar } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useTeam } from '../../contexts/TeamContext'
 import { TaskCard } from '../work/TaskCard'
 import { NewTaskModal } from '../work/NewTaskModal'
+import { SortableTaskList } from '../work/SortableTaskList'
 import { Avatar } from '../../components/ui/Avatar'
 import { Badge } from '../../components/ui/Badge'
 import { PROJECT_STATUSES, PLATFORMS } from '../../lib/constants'
@@ -18,6 +19,7 @@ export default function ProjectDetail() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [reorderMode, setReorderMode] = useState(false)
 
   useEffect(() => {
     if (!team) return
@@ -40,6 +42,24 @@ export default function ProjectDetail() {
   function handleTaskCreated(task) { setTasks((prev) => [task, ...prev]) }
   function handleTaskUpdate(updated) { setTasks((prev) => prev.map((t) => t.id === updated.id ? { ...t, ...updated } : t)) }
   function handleTaskDelete(id) { setTasks((prev) => prev.filter((t) => t.id !== id)) }
+
+  async function handleTaskReorder(activeId, overId) {
+    const oldIndex = tasks.findIndex((task) => task.id === activeId)
+    const newIndex = tasks.findIndex((task) => task.id === overId)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const next = [...tasks]
+    const [moved] = next.splice(oldIndex, 1)
+    next.splice(newIndex, 0, moved)
+    setTasks(next.map((task, index) => ({ ...task, sort_order: index })))
+
+    try {
+      await api.reorderTasks(team.id, project.id, next.map((task) => task.id))
+    } catch (err) {
+      toast.error(err.message)
+      loadProject()
+    }
+  }
 
   if (loading) return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -66,7 +86,7 @@ export default function ProjectDetail() {
     : null
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
       {/* Back */}
       <Link to="/projects" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-5 group">
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -84,9 +104,9 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
         {/* Overview card */}
-        <div className="col-span-2 card p-5 space-y-4">
+        <div className="lg:col-span-2 card p-5 space-y-4">
           {/* Progress */}
           <div>
             <div className="flex items-center justify-between text-sm mb-2">
@@ -172,13 +192,31 @@ export default function ProjectDetail() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">Tasks ({tasks.length})</h2>
-          <button onClick={() => setShowTaskModal(true)} className="btn-primary flex items-center gap-1.5 text-sm">
-            <Plus className="w-4 h-4" />
-            Add Task
-          </button>
+          <div className="flex items-center gap-2">
+            {tasks.length > 1 ? (
+              <button
+                type="button"
+                onClick={() => setReorderMode((value) => !value)}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                  reorderMode
+                    ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-brand-500 dark:bg-brand-900/20 dark:text-brand-400'
+                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+                }`}
+              >
+                <GripVertical className="w-3.5 h-3.5" />
+                Reorder
+              </button>
+            ) : null}
+            <button onClick={() => setShowTaskModal(true)} className="btn-primary flex items-center gap-1.5 text-sm">
+              <Plus className="w-4 h-4" />
+              Add Task
+            </button>
+          </div>
         </div>
         {tasks.length === 0 ? (
           <div className="text-center py-10 text-gray-400 text-sm">No tasks yet. Add tasks to track progress.</div>
+        ) : reorderMode ? (
+          <SortableTaskList tasks={tasks} onUpdate={handleTaskUpdate} onDelete={handleTaskDelete} onReorder={handleTaskReorder} />
         ) : (
           <div className="space-y-3">
             {tasks.map((task) => (
