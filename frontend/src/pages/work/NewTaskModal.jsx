@@ -6,6 +6,7 @@ import { api } from '../../lib/api'
 import { useTeam } from '../../contexts/TeamContext'
 import toast from 'react-hot-toast'
 
+const DRAFT_KEY = 'draft_new_task'
 const DEFAULT_CREATOR_STATUS = 'todo'
 
 function normalizeStatus(status) {
@@ -42,12 +43,34 @@ export function NewTaskModal({
   const [form, setForm] = useState(buildForm(task, defaultStatus))
   const [saving, setSaving] = useState(false)
 
+  const isEditing = Boolean(task)
+
   useEffect(() => {
-    setForm(buildForm(task, defaultStatus))
+    if (!open) return
+    if (task) {
+      setForm(buildForm(task, defaultStatus))
+    } else {
+      try {
+        const saved = localStorage.getItem(DRAFT_KEY)
+        if (saved) {
+          setForm({ ...buildForm(null, defaultStatus), ...JSON.parse(saved) })
+        } else {
+          setForm(buildForm(null, defaultStatus))
+        }
+      } catch {
+        setForm(buildForm(null, defaultStatus))
+      }
+    }
   }, [task, defaultStatus, open])
 
+  // Persist draft for new tasks only
+  useEffect(() => {
+    if (!open || isEditing) return
+    const { reopen_note, ...draftable } = form
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draftable))
+  }, [form, open, isEditing])
+
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
-  const isEditing = Boolean(task)
   const wasCouldntDo = task?.status === 'couldnt_do'
   const assigneeChanged = isEditing && (task.assignee_id || '') !== (form.assignee_id || '')
   const statusChanged = isEditing && task.status !== form.status
@@ -99,6 +122,7 @@ export function NewTaskModal({
         toast.success('Ticket updated!')
       } else {
         onCreated?.(savedTask)
+        localStorage.removeItem(DRAFT_KEY)
         toast.success('Task created!')
       }
 
@@ -115,16 +139,16 @@ export function NewTaskModal({
     <Modal open={open} onClose={onClose} title={title || (isEditing ? 'Edit Ticket' : 'New Task')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Task name *</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Task name *</label>
           <input value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="e.g. Write LinkedIn post copy" className="input" required />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Description</label>
           <textarea value={form.description} onChange={(e) => set('description', e.target.value)} placeholder="Optional details…" rows={3} className="input resize-none" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Assign to</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Assign to</label>
             <select value={form.assignee_id} onChange={(e) => set('assignee_id', e.target.value)} className="input">
               <option value="">Unassigned</option>
               {members.map((m) => (
@@ -133,13 +157,13 @@ export function NewTaskModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Priority</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Priority</label>
             <select value={form.priority} onChange={(e) => set('priority', e.target.value)} className="input">
               {TASK_PRIORITIES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Status</label>
             <select value={form.status} onChange={(e) => set('status', e.target.value)} className="input">
               {CREATOR_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.status}>{option.label}</option>
@@ -147,13 +171,13 @@ export function NewTaskModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Due date</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Due date</label>
             <input type="date" value={form.due_date} onChange={(e) => set('due_date', e.target.value)} className="input" />
           </div>
         </div>
         {projects.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Link to project</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Link to project</label>
             <select value={form.project_id} onChange={(e) => set('project_id', e.target.value)} className="input">
               <option value="">No project</option>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -162,7 +186,7 @@ export function NewTaskModal({
         )}
         {reopenedFromCouldntDo && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Reopen reason *</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Reopen reason *</label>
             <textarea
               value={form.reopen_note}
               onChange={(e) => set('reopen_note', e.target.value)}
@@ -174,7 +198,7 @@ export function NewTaskModal({
           </div>
         )}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Visibility</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Visibility</label>
           <div className="flex gap-2">
             {[{ id: 'team', label: 'Team' }, { id: 'private', label: 'Only me' }].map((v) => (
               <button
@@ -184,7 +208,7 @@ export function NewTaskModal({
                 className={`flex-1 py-1.5 rounded-lg text-sm font-medium border transition-all ${
                   form.visibility === v.id
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300'
+                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600'
                 }`}
               >
                 {v.label}

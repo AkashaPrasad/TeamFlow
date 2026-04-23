@@ -30,6 +30,7 @@ export default {
         'fade-in': 'fade-in 0.2s ease-out both',
         'fade-up': 'fade-up 0.25s ease-out both',
         'slide-right': 'slide-right 0.2s ease-out both',
+        'modal-in': 'modal-in 0.15s ease-out both',
       },
       keyframes: {
         aurora: {
@@ -59,6 +60,10 @@ export default {
         'slide-right': {
           from: { opacity: 0, transform: 'translateX(-6px)' },
           to: { opacity: 1, transform: 'translateX(0)' },
+        },
+        'modal-in': {
+          from: { opacity: 0, transform: 'scale(0.96) translateY(4px)' },
+          to: { opacity: 1, transform: 'scale(1) translateY(0)' },
         },
       },
     },

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutGrid, CheckSquare, FolderKanban, Settings, LogOut, BookOpen, X } from 'lucide-react'
+import { LayoutGrid, CheckSquare, FolderKanban, Settings, LogOut, BookOpen, X, MessageSquare } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTeam } from '../../contexts/TeamContext'
 import { Avatar } from '../ui/Avatar'
@@ -11,6 +11,7 @@ const NAV = [
   { to: '/work', icon: CheckSquare, label: 'Work' },
   { to: '/projects', icon: FolderKanban, label: 'Projects' },
   { to: '/info', icon: BookOpen, label: 'Info' },
+  { to: '/chat', icon: MessageSquare, label: 'Chat' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
 

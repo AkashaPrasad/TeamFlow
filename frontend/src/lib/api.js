@@ -334,6 +334,8 @@ export const api = {
       .from('info_items')
       .select('*, creator:profiles!created_by(id, name, avatar_url), tasks(id, title)')
       .eq('team_id', teamId)
+      .order('pinned', { ascending: false })
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false })
     if (error) throw new Error(error.message)
     return { items: data }
@@ -365,6 +367,113 @@ export const api = {
     const { error } = await supabase.from('info_items').delete().eq('id', itemId)
     if (error) throw new Error(error.message)
     return {}
+  },
+
+  pinInfoItem: async (itemId, pinned) => {
+    const { data: item, error } = await supabase
+      .from('info_items')
+      .update({ pinned, updated_at: new Date().toISOString() })
+      .eq('id', itemId)
+      .select('*, creator:profiles!created_by(id, name, avatar_url), tasks(id, title)')
+      .single()
+    if (error) throw new Error(error.message)
+    return { item }
+  },
+
+  reorderInfoItems: async (orderedIds) => {
+    const updates = orderedIds.map((id, index) =>
+      supabase.from('info_items').update({ sort_order: index }).eq('id', id)
+    )
+    await Promise.all(updates)
+    return {}
+  },
+
+  // ── Team Messages ──────────────────────────────────────────────
+  getTeamMessages: async (teamId, limit = 60) => {
+    const { data, error } = await supabase
+      .from('team_messages')
+      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .eq('team_id', teamId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw new Error(error.message)
+    return { messages: (data || []).reverse() }
+  },
+
+  sendTeamMessage: async (teamId, content, attachment = null) => {
+    const userId = await currentUserId()
+    const { data: message, error } = await supabase
+      .from('team_messages')
+      .insert({ team_id: teamId, sender_id: userId, content, attachment })
+      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .single()
+    if (error) throw new Error(error.message)
+    return { message }
+  },
+
+  deleteTeamMessage: async (messageId) => {
+    const { error } = await supabase.from('team_messages').delete().eq('id', messageId)
+    if (error) throw new Error(error.message)
+    return {}
+  },
+
+  // ── Direct Messages ────────────────────────────────────────────
+  getDMs: async (teamId, otherUserId, limit = 60) => {
+    const userId = await currentUserId()
+    const { data, error } = await supabase
+      .from('direct_messages')
+      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .eq('team_id', teamId)
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw new Error(error.message)
+    return { messages: (data || []).reverse() }
+  },
+
+  sendDM: async (teamId, receiverId, content, attachment = null) => {
+    const userId = await currentUserId()
+    const { data: message, error } = await supabase
+      .from('direct_messages')
+      .insert({ team_id: teamId, sender_id: userId, receiver_id: receiverId, content, attachment })
+      .select('*, sender:profiles!sender_id(id, name, avatar_url)')
+      .single()
+    if (error) throw new Error(error.message)
+    return { message }
+  },
+
+  deleteDM: async (messageId) => {
+    const { error } = await supabase.from('direct_messages').delete().eq('id', messageId)
+    if (error) throw new Error(error.message)
+    return {}
+  },
+
+  markDMsRead: async (teamId, otherUserId) => {
+    const userId = await currentUserId()
+    await supabase
+      .from('direct_messages')
+      .update({ read: true })
+      .eq('team_id', teamId)
+      .eq('sender_id', otherUserId)
+      .eq('receiver_id', userId)
+      .eq('read', false)
+    return {}
+  },
+
+  getDMUnreadCounts: async (teamId) => {
+    const userId = await currentUserId()
+    const { data, error } = await supabase
+      .from('direct_messages')
+      .select('sender_id')
+      .eq('team_id', teamId)
+      .eq('receiver_id', userId)
+      .eq('read', false)
+    if (error) throw new Error(error.message)
+    const counts = {}
+    for (const row of data || []) {
+      counts[row.sender_id] = (counts[row.sender_id] || 0) + 1
+    }
+    return { counts }
   },
 
   // ── Notifications ──────────────────────────────────────────────

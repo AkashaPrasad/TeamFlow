@@ -1,5 +1,21 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Eye, EyeOff, Copy, Check, Trash2, Link, X } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { Plus, Eye, EyeOff, Copy, Check, Trash2, Link, Pin, PinOff, GripVertical, BookOpen, X } from 'lucide-react'
 import { api } from '../../lib/api'
 import { uploadToCloudinary } from '../../lib/cloudinary'
 import { useTeam } from '../../contexts/TeamContext'
@@ -8,10 +24,10 @@ import { INFO_TYPES, API_PROVIDERS } from '../../lib/constants'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { Modal } from '../../components/ui/Modal'
 import { Avatar } from '../../components/ui/Avatar'
-import { BookOpen } from 'lucide-react'
+import { cn } from '../../lib/utils'
 import toast from 'react-hot-toast'
 
-function InfoCard({ item, onDelete }) {
+function InfoCardContent({ item, onPin, onDelete }) {
   const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
   const typeInfo = INFO_TYPES.find((t) => t.id === item.type)
@@ -34,6 +50,15 @@ function InfoCard({ item, onDelete }) {
     }
   }
 
+  async function handlePin() {
+    try {
+      const { item: updated } = await api.pinInfoItem(item.id, !item.pinned)
+      onPin(updated)
+    } catch (err) {
+      toast.error(err.message)
+    }
+  }
+
   const renderContent = () => {
     switch (item.type) {
       case 'photo':
@@ -46,10 +71,7 @@ function InfoCard({ item, onDelete }) {
           <div className="mt-2 space-y-2">
             {providerInfo && (
               <div className="flex items-center gap-1.5">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: providerInfo.color }}
-                />
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: providerInfo.color }} />
                 <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{providerInfo.label}</span>
               </div>
             )}
@@ -61,16 +83,14 @@ function InfoCard({ item, onDelete }) {
                 {visible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
               <button onClick={copyContent} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 shrink-0">
-                {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>
         )
 
       case 'number':
-        return (
-          <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{item.content}</p>
-        )
+        return <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{item.content}</p>
 
       case 'prompt':
       case 'claude_skill':
@@ -83,31 +103,51 @@ function InfoCard({ item, onDelete }) {
               onClick={copyContent}
               className="absolute top-2 right-2 p-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded text-zinc-400 hover:text-zinc-600"
             >
-              {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+              {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
             </button>
           </div>
         )
 
-      default: // text
-        return (
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap line-clamp-4">{item.content}</p>
-        )
+      default:
+        return <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap line-clamp-4">{item.content}</p>
     }
   }
 
   return (
-    <div className="card p-4 hover:shadow-md transition-shadow">
+    <div className={cn('card p-4 hover:shadow-md transition-shadow relative', item.pinned && 'ring-1 ring-brand-200 dark:ring-brand-800/50')}>
+      {item.pinned && (
+        <span className="absolute top-3 right-10 text-brand-400 dark:text-brand-500">
+          <Pin className="w-3 h-3 fill-current" />
+        </span>
+      )}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-base">{typeInfo?.icon}</span>
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{item.title}</h3>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-base shrink-0">{typeInfo?.icon}</span>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white truncate">{item.title}</h3>
             <p className="text-xs text-zinc-400">{typeInfo?.label}</p>
           </div>
         </div>
-        <button onClick={handleDelete} className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-red-500 transition-colors shrink-0">
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={handlePin}
+            className={cn(
+              'p-1 rounded transition-colors',
+              item.pinned
+                ? 'text-brand-500 hover:text-brand-700 dark:hover:text-brand-300'
+                : 'text-zinc-300 dark:text-zinc-600 hover:text-brand-500 dark:hover:text-brand-400'
+            )}
+            title={item.pinned ? 'Unpin' : 'Pin to top'}
+          >
+            {item.pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            onClick={handleDelete}
+            className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-red-500 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {renderContent()}
@@ -132,6 +172,35 @@ function InfoCard({ item, onDelete }) {
           <span className="text-xs text-zinc-400">{item.creator?.name}</span>
         </div>
       )}
+    </div>
+  )
+}
+
+function SortableInfoCard({ item, onPin, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    position: 'relative',
+    zIndex: isDragging ? 50 : 'auto',
+  }
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="relative">
+        <button
+          {...attributes}
+          {...listeners}
+          className="absolute top-3 left-3 z-10 p-1 text-zinc-200 dark:text-zinc-700 hover:text-zinc-400 dark:hover:text-zinc-400 cursor-grab active:cursor-grabbing transition-colors"
+          title="Drag to reorder"
+        >
+          <GripVertical className="w-3.5 h-3.5" />
+        </button>
+        <div className="pl-5">
+          <InfoCardContent item={item} onPin={onPin} onDelete={onDelete} />
+        </div>
+      </div>
     </div>
   )
 }
@@ -194,7 +263,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       case 'photo':
         return (
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Image</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Image</label>
             <input type="file" accept="image/*" onChange={handlePhotoChange} className="input" />
             {uploading && <p className="text-xs text-zinc-400 mt-1">Uploading…</p>}
             {content && <img src={content} alt="" className="mt-2 h-24 rounded-lg object-cover" />}
@@ -204,7 +273,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
         return (
           <>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Provider</label>
+              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Provider</label>
               <select value={provider} onChange={(e) => setProvider(e.target.value)} className="input">
                 <option value="">Select provider…</option>
                 {API_PROVIDERS.map((p) => (
@@ -213,21 +282,15 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">API Key</label>
-              <input
-                type="password"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="sk-…"
-                className="input font-mono"
-              />
+              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">API Key</label>
+              <input type="password" value={content} onChange={(e) => setContent(e.target.value)} placeholder="sk-…" className="input font-mono" />
             </div>
           </>
         )
       case 'number':
         return (
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Value</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Value</label>
             <input type="number" value={content} onChange={(e) => setContent(e.target.value)} placeholder="0" className="input" />
           </div>
         )
@@ -235,7 +298,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       case 'claude_skill':
         return (
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">
               {type === 'claude_skill' ? 'Instructions / Skill' : 'Prompt'}
             </label>
             <textarea
@@ -250,7 +313,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       default:
         return (
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Content</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Content</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -266,20 +329,20 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
   return (
     <Modal open={open} onClose={() => { reset(); onClose() }} title="New Info Box">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Type selector */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Type</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide">Type</label>
           <div className="grid grid-cols-3 gap-2">
             {INFO_TYPES.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => { setType(t.id); setContent(''); setProvider('') }}
-                className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all ${
+                className={cn(
+                  'flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all',
                   type === t.id
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400'
                     : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-500'
-                }`}
+                )}
               >
                 <span className="text-lg">{t.icon}</span>
                 <span className="text-xs font-medium leading-tight">{t.label}</span>
@@ -287,38 +350,24 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
             ))}
           </div>
         </div>
-
-        {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Title *</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Title *</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Groq API Key" className="input" required />
         </div>
-
-        {/* Dynamic content field */}
         {renderContentField()}
-
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Note</label>
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Optional note for this box…"
-            rows={3}
-            className="input resize-none"
-          />
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Note</label>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note…" rows={3} className="input resize-none" />
         </div>
-
-        {/* Link to task */}
         {tasks.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Link to task (optional)</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Link to task (optional)</label>
             <select value={taskId} onChange={(e) => setTaskId(e.target.value)} className="input">
               <option value="">No task</option>
               {tasks.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
             </select>
           </div>
         )}
-
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={() => { reset(); onClose() }} className="btn-secondary">Cancel</button>
           <button type="submit" disabled={saving || uploading} className="btn-primary">
@@ -337,6 +386,12 @@ export default function InfoPage() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [filter, setFilter] = useState('')
+  const [activeId, setActiveId] = useState(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   const loadItems = useCallback(async () => {
     if (!team) return
@@ -353,41 +408,61 @@ export default function InfoPage() {
 
   useEffect(() => {
     if (!team) return
-    api.getTasks(team.id).then(({ tasks }) => setTasks(tasks || []))
+    api.getTasks(team.id).then(({ tasks }) => setTasks(tasks || [])).catch(() => {})
   }, [team?.id])
 
   useRealtime('info_items', team ? { filter: `team_id=eq.${team.id}` } : null, loadItems)
 
   function handleCreated(item) { setItems((prev) => [item, ...prev]) }
   function handleDelete(id) { setItems((prev) => prev.filter((i) => i.id !== id)) }
+  function handlePin(updated) {
+    setItems((prev) => prev.map((i) => i.id === updated.id ? updated : i))
+  }
 
-  const displayed = filter
-    ? items.filter((i) => i.type === filter)
-    : items
+  const allDisplayed = filter ? items.filter((i) => i.type === filter) : items
+  const pinned = allDisplayed.filter((i) => i.pinned)
+  const unpinned = allDisplayed.filter((i) => !i.pinned)
+  const displayed = [...pinned, ...unpinned]
+
+  const activeItem = items.find((i) => i.id === activeId)
+
+  function handleDragEnd({ active, over }) {
+    setActiveId(null)
+    if (!over || active.id === over.id) return
+
+    setItems((prev) => {
+      const oldIndex = prev.findIndex((i) => i.id === active.id)
+      const newIndex = prev.findIndex((i) => i.id === over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+      const next = [...prev]
+      const [moved] = next.splice(oldIndex, 1)
+      next.splice(newIndex, 0, moved)
+      api.reorderInfoItems(next.map((i) => i.id)).catch(() => {})
+      return next
+    })
+  }
 
   return (
     <div className="p-4 sm:p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Info</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Team knowledge base — API keys, prompts, notes</p>
+          <h2 className="section-title">Info</h2>
+          <p className="section-subtitle">Team knowledge base — API keys, prompts, notes</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setShowModal(true)} className="btn-primary">
           <Plus className="w-4 h-4" />
           New Box
         </button>
       </div>
 
-      {/* Type filter tabs */}
+      {/* Type filter */}
       <div className="flex gap-1 mb-5 overflow-x-auto pb-1">
         <button
           onClick={() => setFilter('')}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-            filter === ''
-              ? 'bg-brand-600 text-white'
-              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-          }`}
+          className={cn(
+            'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors',
+            filter === '' ? 'bg-brand-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+          )}
         >
           All ({items.length})
         </button>
@@ -398,11 +473,10 @@ export default function InfoPage() {
             <button
               key={t.id}
               onClick={() => setFilter(t.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
-                filter === t.id
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-              }`}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1',
+                filter === t.id ? 'bg-brand-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+              )}
             >
               {t.icon} {t.label} ({count})
             </button>
@@ -410,7 +484,6 @@ export default function InfoPage() {
         })}
       </div>
 
-      {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
@@ -426,18 +499,35 @@ export default function InfoPage() {
           title="No info boxes yet"
           description="Store API keys, prompts, notes, and other team knowledge here."
           action={
-            <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+            <button onClick={() => setShowModal(true)} className="btn-primary">
               <Plus className="w-4 h-4" />
               Create first box
             </button>
           }
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {displayed.map((item) => (
-            <InfoCard key={item.id} item={item} onDelete={handleDelete} />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={({ active }) => setActiveId(active.id)}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveId(null)}
+        >
+          <SortableContext items={displayed.map((i) => i.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {displayed.map((item) => (
+                <SortableInfoCard key={item.id} item={item} onPin={handlePin} onDelete={handleDelete} />
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay>
+            {activeItem ? (
+              <div className="opacity-90 rotate-1 shadow-2xl">
+                <InfoCardContent item={activeItem} onPin={() => {}} onDelete={() => {}} />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       <CreateInfoModal

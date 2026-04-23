@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Modal } from '../../components/ui/Modal'
 import { PLATFORMS, POST_STATUSES } from '../../lib/constants'
 import { PLATFORM_ICONS } from '../../components/icons/PlatformIcons'
@@ -8,19 +8,35 @@ import { uploadToCloudinary } from '../../lib/cloudinary'
 import { Image, X, Calendar, Lock, Users, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const DRAFT_KEY = 'draft_new_post'
+const DEFAULT_FORM = { caption: '', platforms: [], visibility: 'team', status: 'draft', scheduled_at: '' }
+
 export function NewPostModal({ open, onClose, onCreated }) {
   const { team } = useTeam()
   const fileRef = useRef(null)
-  const [form, setForm] = useState({
-    caption: '',
-    platforms: [],
-    visibility: 'team',
-    status: 'draft',
-    scheduled_at: '',
-  })
+  const [form, setForm] = useState(DEFAULT_FORM)
   const [images, setImages] = useState([])
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // Load draft when modal opens
+  useEffect(() => {
+    if (!open) return
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY)
+      if (saved) {
+        const draft = JSON.parse(saved)
+        setForm(draft.form ?? DEFAULT_FORM)
+        setImages(draft.images ?? [])
+      }
+    } catch {}
+  }, [open])
+
+  // Save draft on change
+  useEffect(() => {
+    if (!open) return
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, images }))
+  }, [form, images, open])
 
   function togglePlatform(id) {
     setForm((f) => ({
@@ -58,8 +74,9 @@ export function NewPostModal({ open, onClose, onCreated }) {
       })
       onCreated(post)
       toast.success('Post created!')
+      localStorage.removeItem(DRAFT_KEY)
       onClose()
-      setForm({ caption: '', platforms: [], visibility: 'team', status: 'draft', scheduled_at: '' })
+      setForm(DEFAULT_FORM)
       setImages([])
     } catch (err) {
       toast.error(err.message)
@@ -73,7 +90,7 @@ export function NewPostModal({ open, onClose, onCreated }) {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Platform selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platforms</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide">Platforms</label>
           <div className="flex flex-wrap gap-2">
             {PLATFORMS.map((p) => {
               const Icon = PLATFORM_ICONS[p.id]
@@ -86,7 +103,7 @@ export function NewPostModal({ open, onClose, onCreated }) {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                     active
                       ? 'border-transparent text-white shadow-sm'
-                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                      : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600'
                   }`}
                   style={active ? { backgroundColor: p.color } : {}}
                 >
@@ -100,7 +117,7 @@ export function NewPostModal({ open, onClose, onCreated }) {
 
         {/* Caption */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Caption</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Caption</label>
           <textarea
             value={form.caption}
             onChange={(e) => setForm((f) => ({ ...f, caption: e.target.value }))}
@@ -112,23 +129,26 @@ export function NewPostModal({ open, onClose, onCreated }) {
 
         {/* Image upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Images</label>
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Images</label>
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); if (!uploading) handleFiles([...e.dataTransfer.files]) }}
             onClick={() => !uploading && fileRef.current.click()}
-            className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors ${uploading ? 'border-brand-300 bg-brand-50/40 cursor-not-allowed' : 'border-gray-200 cursor-pointer hover:border-brand-400 hover:bg-brand-50/30'}`}
+            className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors cursor-pointer ${
+              uploading
+                ? 'border-brand-300 bg-brand-50/40 dark:bg-brand-900/10 cursor-not-allowed'
+                : 'border-zinc-200 dark:border-zinc-700 hover:border-brand-400 hover:bg-brand-50/30 dark:hover:border-brand-600 dark:hover:bg-brand-900/10'
+            }`}
           >
             {uploading ? (
               <>
-                <Loader2 className="w-6 h-6 text-brand-500 mx-auto mb-1 animate-spin" />
-                <p className="text-xs text-brand-600 font-medium">Uploading to Cloudinary…</p>
+                <Loader2 className="w-5 h-5 text-brand-500 mx-auto mb-1 animate-spin" />
+                <p className="text-xs text-brand-600 font-medium">Uploading…</p>
               </>
             ) : (
               <>
-                <Image className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                <p className="text-xs text-gray-500">Drag & drop or click to upload images</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">Powered by Cloudinary</p>
+                <Image className="w-5 h-5 text-zinc-400 mx-auto mb-1" />
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Drag & drop or click to upload</p>
               </>
             )}
           </div>
@@ -138,7 +158,7 @@ export function NewPostModal({ open, onClose, onCreated }) {
             <div className="flex flex-wrap gap-2 mt-2">
               {images.map((url, i) => (
                 <div key={i} className="relative group">
-                  <img src={url} className="w-16 h-16 object-cover rounded-lg" />
+                  <img src={url} className="w-16 h-16 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700" alt="" />
                   <button
                     type="button"
                     onClick={() => setImages((imgs) => imgs.filter((_, j) => j !== i))}
@@ -155,15 +175,17 @@ export function NewPostModal({ open, onClose, onCreated }) {
         <div className="grid grid-cols-2 gap-4">
           {/* Visibility */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Visibility</label>
-            <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Visibility</label>
+            <div className="flex rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
               {[{ v: 'private', icon: Lock, label: 'Only Me' }, { v: 'team', icon: Users, label: 'Team' }].map(({ v, icon: Icon, label }) => (
                 <button
                   key={v}
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, visibility: v }))}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors ${
-                    form.visibility === v ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-50'
+                    form.visibility === v
+                      ? 'bg-brand-600 text-white'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -175,7 +197,7 @@ export function NewPostModal({ open, onClose, onCreated }) {
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Status</label>
             <select
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
@@ -190,8 +212,8 @@ export function NewPostModal({ open, onClose, onCreated }) {
 
         {/* Schedule */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            <Calendar className="inline w-4 h-4 mr-1 mb-0.5" />
+          <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">
+            <Calendar className="inline w-3.5 h-3.5 mr-1 mb-0.5" />
             Schedule for (optional)
           </label>
           <input
