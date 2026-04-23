@@ -16,6 +16,7 @@ frontend/.env.*
 !frontend/.env.example
 frontend/node_modules/
 frontend/dist/
+ui-promax.md
 
 # Logs and temp files
 logs/
