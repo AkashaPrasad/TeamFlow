@@ -36,13 +36,13 @@ export default function Projects() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Projects</h2>
-          <p className="text-sm text-gray-500">{projects.length} projects</p>
+          <h2 className="section-title">Projects</h2>
+          <p className="section-subtitle mt-0.5">{projects.length} {projects.length === 1 ? 'project' : 'projects'}</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setShowModal(true)} className="btn-primary">
           <Plus className="w-4 h-4" />
           New Project
         </button>
@@ -52,11 +52,11 @@ export default function Projects() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-5 animate-pulse">
-              <div className="h-5 bg-gray-200 rounded w-2/3 mb-2" />
-              <div className="h-3 bg-gray-100 rounded w-full mb-4" />
-              <div className="h-1.5 bg-gray-200 rounded w-full mb-4" />
+              <div className="h-5 bg-zinc-100 dark:bg-zinc-800 rounded w-2/3 mb-2" />
+              <div className="h-3 bg-zinc-100 dark:bg-zinc-800 rounded w-full mb-4" />
+              <div className="h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded w-full mb-4" />
               <div className="flex gap-1">
-                {[1, 2, 3].map((j) => <div key={j} className="w-6 h-6 rounded-full bg-gray-200" />)}
+                {[1, 2, 3].map((j) => <div key={j} className="w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800" />)}
               </div>
             </div>
           ))}
@@ -67,7 +67,7 @@ export default function Projects() {
           title="No projects yet"
           description="Organize your campaigns and initiatives into projects with timelines and goals."
           action={
-            <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+            <button onClick={() => setShowModal(true)} className="btn-primary">
               <Plus className="w-4 h-4" />
               Create first project
             </button>
@@ -75,8 +75,10 @@ export default function Projects() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} onDelete={handleDelete} />
+          {projects.map((project, i) => (
+            <div key={project.id} className="animate-fade-up" style={{ animationDelay: `${i * 40}ms` }}>
+              <ProjectCard project={project} onDelete={handleDelete} />
+            </div>
           ))}
         </div>
       )}

@@ -43,27 +43,27 @@ export default function TeamSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 to-violet-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] flex items-center justify-center p-4">
+      <div className="w-full max-w-md animate-fade-up">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-brand-600 flex items-center justify-center mx-auto mb-4">
-            <Users className="w-6 h-6 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-500/25">
+            <Users className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Set up your workspace</h1>
-          <p className="text-gray-500 mt-1">Create a new team or join an existing one</p>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Set up your workspace</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1.5 text-sm">Create a new team or join an existing one</p>
         </div>
 
         <div className="card overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-gray-100">
+          <div className="flex border-b border-zinc-100 dark:border-zinc-800">
             {['create', 'join'].map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                className={`flex-1 py-3 text-sm font-medium transition-all duration-150 ${
                   tab === t
-                    ? 'text-brand-600 border-b-2 border-brand-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-500 -mb-px'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                 }`}
               >
                 {t === 'create' ? 'Create a Team' : 'Join a Team'}
@@ -71,11 +71,11 @@ export default function TeamSetup() {
             ))}
           </div>
 
-          <div className="p-8">
+          <div className="p-7">
             {tab === 'create' ? (
               <form onSubmit={handleCreate} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Team name</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Team name</label>
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -84,18 +84,18 @@ export default function TeamSetup() {
                     required
                   />
                 </div>
-                <button type="submit" disabled={loading} className="btn-primary w-full flex justify-center items-center gap-2 py-2.5">
+                <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
                   <Plus className="w-4 h-4" />
                   {loading ? 'Creating…' : 'Create Team'}
                 </button>
-                <p className="text-xs text-gray-400 text-center">
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center">
                   An invite code will be generated automatically for sharing with teammates
                 </p>
               </form>
             ) : (
               <form onSubmit={handleJoin} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Invite code</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Invite code</label>
                   <input
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -105,7 +105,7 @@ export default function TeamSetup() {
                     required
                   />
                 </div>
-                <button type="submit" disabled={loading} className="btn-primary w-full flex justify-center items-center gap-2 py-2.5">
+                <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
                   {loading ? 'Joining…' : 'Join Team'}
                 </button>
               </form>

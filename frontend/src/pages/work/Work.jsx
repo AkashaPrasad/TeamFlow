@@ -11,6 +11,7 @@ import { NewTaskModal } from './NewTaskModal'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { CheckSquare } from 'lucide-react'
 import { TASK_PRIORITIES, TASK_STATUSES } from '../../lib/constants'
+import { cn } from '../../lib/utils'
 
 const SORT_OPTIONS = [
   { id: 'created_desc', label: 'Newest first' },
@@ -21,7 +22,7 @@ const SORT_OPTIONS = [
 
 const MODE_OPTIONS = [
   { id: 'my_tasks', label: 'My Tasks' },
-  { id: 'assigned_to_me', label: 'Assigned to Me' },
+  { id: 'assigned_to_me', label: 'Assigned' },
   { id: 'i_assigned', label: 'I Assigned' },
   { id: 'all', label: 'All' },
 ]
@@ -113,21 +114,22 @@ export default function Work() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Tasks</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{tasks.length} tasks</p>
+          <h2 className="section-title">Tasks</h2>
+          <p className="section-subtitle mt-0.5">{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
           {/* View toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 gap-0.5">
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1 gap-0.5">
             {views.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
                 onClick={() => setView(id)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                className={cn(
+                  'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150',
                   view === id
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
+                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+                )}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{label}</span>
@@ -136,7 +138,7 @@ export default function Work() {
           </div>
           <button
             onClick={() => { setDefaultStatus('todo'); setShowModal(true) }}
-            className="btn-primary flex items-center gap-2 text-sm"
+            className="btn-primary"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Task</span>
@@ -146,16 +148,17 @@ export default function Work() {
       </div>
 
       {/* Mode tabs */}
-      <div className="flex gap-1 mb-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <div className="flex gap-0.5 mb-4 border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto">
         {MODE_OPTIONS.map((m) => (
           <button
             key={m.id}
             onClick={() => setMode(m.id)}
-            className={`px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors -mb-px ${
+            className={cn(
+              'px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-all duration-150 -mb-px',
               mode === m.id
-                ? 'border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
+                ? 'border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-500'
+                : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+            )}
           >
             {m.label}
           </button>
@@ -164,13 +167,13 @@ export default function Work() {
 
       {/* Filters + sort */}
       <div className="flex items-center gap-2 mb-5 flex-wrap">
-        <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+        <span className="flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500">
           <Filter className="w-3.5 h-3.5" />
-        </div>
+        </span>
         <select
           value={filters.priority}
           onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
-          className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200 focus:outline-none"
+          className="text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-zinc-900 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 appearance-none cursor-pointer transition-all duration-150"
         >
           <option value="">All priorities</option>
           {TASK_PRIORITIES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -179,20 +182,20 @@ export default function Work() {
           <select
             value={filters.status}
             onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200 focus:outline-none"
+            className="text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-zinc-900 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 appearance-none cursor-pointer transition-all duration-150"
           >
             <option value="">All statuses</option>
             {TASK_STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
         )}
 
-        <div className="flex items-center gap-1 ml-1 text-sm text-gray-500 dark:text-gray-400">
+        <span className="flex items-center gap-1 ml-1 text-xs text-zinc-400 dark:text-zinc-500">
           <ArrowUpDown className="w-3.5 h-3.5" />
-        </div>
+        </span>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200 focus:outline-none"
+          className="text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-zinc-900 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 appearance-none cursor-pointer transition-all duration-150"
         >
           {SORT_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
@@ -200,7 +203,7 @@ export default function Work() {
         {activeFilters && (
           <button
             onClick={() => setFilters({ priority: '', status: '' })}
-            className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
+            className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
           >
             Clear
           </button>
@@ -212,8 +215,8 @@ export default function Work() {
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-4 animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2" />
-              <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded w-2/3" />
+              <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-1/3 mb-2" />
+              <div className="h-3 bg-zinc-100 dark:bg-zinc-800 rounded w-2/3" />
             </div>
           ))}
         </div>
@@ -223,7 +226,7 @@ export default function Work() {
           title="No tasks here"
           description={mode === 'my_tasks' ? 'No tasks assigned to you or created by you yet.' : 'No tasks match this filter.'}
           action={
-            <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+            <button onClick={() => setShowModal(true)} className="btn-primary">
               <Plus className="w-4 h-4" />
               Create task
             </button>
@@ -231,8 +234,10 @@ export default function Work() {
         />
       ) : view === 'list' ? (
         <div className="space-y-3">
-          {displayedTasks.map((task) => (
-            <TaskCard key={task.id} task={task} onUpdate={handleUpdate} onDelete={handleDelete} />
+          {displayedTasks.map((task, i) => (
+            <div key={task.id} className="animate-fade-up" style={{ animationDelay: `${i * 25}ms` }}>
+              <TaskCard task={task} onUpdate={handleUpdate} onDelete={handleDelete} />
+            </div>
           ))}
         </div>
       ) : view === 'kanban' ? (

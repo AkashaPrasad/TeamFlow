@@ -16,6 +16,7 @@ export default {
           700: '#4338ca',
           800: '#3730a3',
           900: '#312e81',
+          950: '#1e1b4b',
         },
       },
       fontFamily: {
@@ -26,6 +27,9 @@ export default {
         spotlight: 'spotlight 2s ease .75s 1 forwards',
         shimmer: 'shimmer 2s linear infinite',
         'moving-border': 'moving-border 2s linear infinite',
+        'fade-in': 'fade-in 0.2s ease-out both',
+        'fade-up': 'fade-up 0.25s ease-out both',
+        'slide-right': 'slide-right 0.2s ease-out both',
       },
       keyframes: {
         aurora: {
@@ -44,9 +48,20 @@ export default {
           '0%': { offsetDistance: '0%' },
           '100%': { offsetDistance: '100%' },
         },
+        'fade-in': {
+          from: { opacity: 0 },
+          to: { opacity: 1 },
+        },
+        'fade-up': {
+          from: { opacity: 0, transform: 'translateY(6px)' },
+          to: { opacity: 1, transform: 'translateY(0)' },
+        },
+        'slide-right': {
+          from: { opacity: 0, transform: 'translateX(-6px)' },
+          to: { opacity: 1, transform: 'translateX(0)' },
+        },
       },
     },
   },
   plugins: [],
 }
-

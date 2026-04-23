@@ -39,7 +39,7 @@ function InfoCard({ item, onDelete }) {
       case 'photo':
         return item.content ? (
           <img src={item.content} alt={item.title} className="w-full h-40 object-cover rounded-lg mt-2" />
-        ) : <p className="text-xs text-gray-400 mt-2">No image</p>
+        ) : <p className="text-xs text-zinc-400 mt-2">No image</p>
 
       case 'api_key':
         return (
@@ -50,17 +50,17 @@ function InfoCard({ item, onDelete }) {
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: providerInfo.color }}
                 />
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{providerInfo.label}</span>
+                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{providerInfo.label}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-              <code className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 truncate">
+            <div className="flex items-center gap-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg px-3 py-2">
+              <code className="flex-1 text-xs font-mono text-zinc-700 dark:text-zinc-300 truncate">
                 {visible ? item.content : '•'.repeat(Math.min(item.content?.length || 8, 32))}
               </code>
-              <button onClick={() => setVisible((v) => !v)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0">
+              <button onClick={() => setVisible((v) => !v)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 shrink-0">
                 {visible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
-              <button onClick={copyContent} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0">
+              <button onClick={copyContent} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 shrink-0">
                 {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
@@ -69,19 +69,19 @@ function InfoCard({ item, onDelete }) {
 
       case 'number':
         return (
-          <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{item.content}</p>
+          <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{item.content}</p>
         )
 
       case 'prompt':
       case 'claude_skill':
         return (
           <div className="mt-2 relative">
-            <pre className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 font-mono line-clamp-6">
+            <pre className="text-xs text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-3 font-mono line-clamp-6">
               {item.content}
             </pre>
             <button
               onClick={copyContent}
-              className="absolute top-2 right-2 p-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-400 hover:text-gray-600"
+              className="absolute top-2 right-2 p-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded text-zinc-400 hover:text-zinc-600"
             >
               {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
             </button>
@@ -90,7 +90,7 @@ function InfoCard({ item, onDelete }) {
 
       default: // text
         return (
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap line-clamp-4">{item.content}</p>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap line-clamp-4">{item.content}</p>
         )
     }
   }
@@ -101,11 +101,11 @@ function InfoCard({ item, onDelete }) {
         <div className="flex items-center gap-2">
           <span className="text-base">{typeInfo?.icon}</span>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{item.title}</h3>
-            <p className="text-xs text-gray-400">{typeInfo?.label}</p>
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{item.title}</h3>
+            <p className="text-xs text-zinc-400">{typeInfo?.label}</p>
           </div>
         </div>
-        <button onClick={handleDelete} className="p-1 text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors shrink-0">
+        <button onClick={handleDelete} className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-red-500 transition-colors shrink-0">
           <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -113,9 +113,9 @@ function InfoCard({ item, onDelete }) {
       {renderContent()}
 
       {item.note && (
-        <div className="mt-3 rounded-lg bg-gray-50 dark:bg-gray-700/40 px-3 py-2">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">Note</p>
-          <p className="mt-1 text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{item.note}</p>
+        <div className="mt-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/40 px-3 py-2">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">Note</p>
+          <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap">{item.note}</p>
         </div>
       )}
 
@@ -129,7 +129,7 @@ function InfoCard({ item, onDelete }) {
       {item.creator && (
         <div className="mt-3 flex items-center gap-1.5">
           <Avatar name={item.creator?.name} src={item.creator?.avatar_url} size="xs" />
-          <span className="text-xs text-gray-400">{item.creator?.name}</span>
+          <span className="text-xs text-zinc-400">{item.creator?.name}</span>
         </div>
       )}
     </div>
@@ -194,9 +194,9 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       case 'photo':
         return (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Image</label>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Image</label>
             <input type="file" accept="image/*" onChange={handlePhotoChange} className="input" />
-            {uploading && <p className="text-xs text-gray-400 mt-1">Uploading…</p>}
+            {uploading && <p className="text-xs text-zinc-400 mt-1">Uploading…</p>}
             {content && <img src={content} alt="" className="mt-2 h-24 rounded-lg object-cover" />}
           </div>
         )
@@ -204,7 +204,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
         return (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Provider</label>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Provider</label>
               <select value={provider} onChange={(e) => setProvider(e.target.value)} className="input">
                 <option value="">Select provider…</option>
                 {API_PROVIDERS.map((p) => (
@@ -213,7 +213,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">API Key</label>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">API Key</label>
               <input
                 type="password"
                 value={content}
@@ -227,7 +227,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       case 'number':
         return (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Value</label>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Value</label>
             <input type="number" value={content} onChange={(e) => setContent(e.target.value)} placeholder="0" className="input" />
           </div>
         )
@@ -235,7 +235,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       case 'claude_skill':
         return (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
               {type === 'claude_skill' ? 'Instructions / Skill' : 'Prompt'}
             </label>
             <textarea
@@ -250,7 +250,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       default:
         return (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Content</label>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Content</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -268,7 +268,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Type selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Type</label>
           <div className="grid grid-cols-3 gap-2">
             {INFO_TYPES.map((t) => (
               <button
@@ -278,7 +278,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
                 className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all ${
                   type === t.id
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
+                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-500'
                 }`}
               >
                 <span className="text-lg">{t.icon}</span>
@@ -290,7 +290,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title *</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Title *</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Groq API Key" className="input" required />
         </div>
 
@@ -298,7 +298,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
         {renderContentField()}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Note</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Note</label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -311,7 +311,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
         {/* Link to task */}
         {tasks.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Link to task (optional)</label>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Link to task (optional)</label>
             <select value={taskId} onChange={(e) => setTaskId(e.target.value)} className="input">
               <option value="">No task</option>
               {tasks.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
@@ -370,8 +370,8 @@ export default function InfoPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Info</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Team knowledge base — API keys, prompts, notes</p>
+          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Info</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Team knowledge base — API keys, prompts, notes</p>
         </div>
         <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" />
@@ -386,7 +386,7 @@ export default function InfoPage() {
           className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
             filter === ''
               ? 'bg-brand-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
           }`}
         >
           All ({items.length})
@@ -401,7 +401,7 @@ export default function InfoPage() {
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
                 filter === t.id
                   ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
               }`}
             >
               {t.icon} {t.label} ({count})
@@ -415,8 +415,8 @@ export default function InfoPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-4 animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3" />
-              <div className="h-16 bg-gray-100 dark:bg-gray-700 rounded" />
+              <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2 mb-3" />
+              <div className="h-16 bg-zinc-100 dark:bg-zinc-800 rounded" />
             </div>
           ))}
         </div>

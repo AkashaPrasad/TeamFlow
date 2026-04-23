@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '../../lib/utils'
 
-export function GlowingCard({ children, className, glowColor = 'rgba(99,102,241,0.15)' }) {
+export function GlowingCard({ children, className, glowColor = 'rgba(99,102,241,0.10)' }) {
   const ref = useRef(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = useState(false)
@@ -14,22 +13,28 @@ export function GlowingCard({ children, className, glowColor = 'rgba(99,102,241,
   }
 
   return (
-    <motion.div
+    <div
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={cn('relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-shadow', isHovered && 'shadow-lg', className)}
+      className={cn(
+        'relative overflow-hidden rounded-xl bg-white dark:bg-zinc-900 transition-all duration-200',
+        isHovered
+          ? 'border border-zinc-200 dark:border-zinc-700 shadow-[0_4px_16px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]'
+          : 'border border-zinc-100 dark:border-zinc-800/80',
+        className
+      )}
     >
       {isHovered && (
         <div
-          className="pointer-events-none absolute inset-0 opacity-100 transition-opacity duration-300 rounded-2xl"
+          className="pointer-events-none absolute inset-0 transition-opacity duration-300 rounded-xl"
           style={{
-            background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, ${glowColor}, transparent 60%)`,
+            background: `radial-gradient(320px circle at ${position.x}px ${position.y}px, ${glowColor}, transparent 60%)`,
           }}
         />
       )}
       {children}
-    </motion.div>
+    </div>
   )
 }

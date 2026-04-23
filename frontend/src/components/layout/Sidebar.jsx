@@ -25,58 +25,66 @@ export function Sidebar({ open, onClose }) {
   }
 
   const content = (
-    <div className="w-60 h-full bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800 flex flex-col">
-      {/* Team branding */}
-      <div className="px-4 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-2.5 min-w-0"
-        >
-          <div className="w-8 h-8 shrink-0 rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-md shadow-brand-500/30">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
+    <div className="w-[220px] h-full bg-white dark:bg-zinc-950 border-r border-zinc-100 dark:border-zinc-800/60 flex flex-col">
+      {/* Team header */}
+      <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/60 shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-7 h-7 shrink-0 rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 flex items-center justify-center shadow-sm shadow-brand-500/25">
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="currentColor">
               <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+            <p className="text-[13px] font-semibold text-zinc-900 dark:text-white truncate leading-tight">
               {team?.name || 'TeamPost'}
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">Workspace</p>
+            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">Workspace</p>
           </div>
-        </motion.div>
-        {/* Mobile close button */}
+        </div>
         {onClose && (
-          <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 lg:hidden">
-            <X className="w-5 h-5" />
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors lg:hidden"
+          >
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
         {NAV.map(({ to, icon: Icon, label }, i) => (
           <motion.div
             key={to}
-            initial={{ opacity: 0, x: -10 }}
+            initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.04 }}
+            transition={{ delay: i * 0.04, duration: 0.18, ease: 'easeOut' }}
           >
             <NavLink
               to={to}
               onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+                  'relative flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 group',
                   isActive
-                    ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200'
+                    ? 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 hover:text-zinc-800 dark:hover:text-zinc-200'
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={cn('w-4 h-4 shrink-0 transition-colors', isActive ? 'text-brand-600 dark:text-brand-400' : '')} />
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-brand-600 dark:bg-brand-500 rounded-r-full" />
+                  )}
+                  <Icon
+                    className={cn(
+                      'w-4 h-4 shrink-0 transition-colors duration-150',
+                      isActive
+                        ? 'text-brand-600 dark:text-brand-500'
+                        : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300'
+                    )}
+                  />
                   {label}
                 </>
               )}
@@ -85,23 +93,23 @@ export function Sidebar({ open, onClose }) {
         ))}
       </nav>
 
-      {/* User footer — clickable → settings */}
-      <div className="p-3 border-t border-gray-100 dark:border-gray-800">
+      {/* User footer */}
+      <div className="p-2 border-t border-zinc-100 dark:border-zinc-800/60">
         <button
           onClick={() => { navigate('/settings'); onClose?.() }}
-          className="w-full flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors group text-left"
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group text-left"
         >
           <Avatar name={profile?.name} src={profile?.avatar_url} size="sm" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{profile?.name}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">Workspace</p>
+            <p className="text-[13px] font-medium text-zinc-900 dark:text-white truncate leading-tight">{profile?.name}</p>
+            <p className="text-[10px] text-zinc-400 dark:text-zinc-500">Member</p>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); handleSignOut() }}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
+            className="p-1.5 rounded-md text-zinc-300 dark:text-zinc-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all duration-150"
             title="Sign out"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </button>
       </div>
@@ -123,15 +131,16 @@ export function Sidebar({ open, onClose }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px] lg:hidden"
               onClick={onClose}
             />
             <motion.aside
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.22 }}
-              className="fixed left-0 top-0 z-50 h-full lg:hidden"
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              className="fixed left-0 top-0 z-50 h-full lg:hidden shadow-2xl shadow-black/20"
             >
               {content}
             </motion.aside>

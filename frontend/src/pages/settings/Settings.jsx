@@ -61,13 +61,12 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
-      {/* Profile */}
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 animate-fade-up">
+      {/* Profile card */}
       <div className="card p-6">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Your Profile</h2>
-        <form onSubmit={handleSaveProfile} className="space-y-4">
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-white mb-5">Your Profile</h2>
+        <form onSubmit={handleSaveProfile} className="space-y-5">
           <div className="flex items-center gap-4">
-            {/* Clickable avatar for photo upload */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -75,10 +74,10 @@ export default function Settings() {
               title="Change profile photo"
             >
               <Avatar name={profile?.name} src={profile?.avatar_url} size="xl" />
-              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                 {uploadingPhoto
                   ? <Loader2 className="w-5 h-5 text-white animate-spin" />
-                  : <Camera className="w-5 h-5 text-white" />
+                  : <Camera className="w-4 h-4 text-white" />
                 }
               </div>
             </button>
@@ -90,12 +89,12 @@ export default function Settings() {
               onChange={handlePhotoUpload}
             />
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{profile?.name}</p>
-              <p className="text-xs text-gray-400 mt-0.5">Click the avatar to change your photo</p>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white">{profile?.name}</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Click avatar to change photo</p>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Display name</label>
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">Display name</label>
             <input value={name} onChange={(e) => setName(e.target.value)} className="input" required />
           </div>
           <button type="submit" disabled={saving} className="btn-primary">
@@ -104,46 +103,46 @@ export default function Settings() {
         </form>
       </div>
 
-      {/* Team */}
+      {/* Team card */}
       {team && (
         <div className="card p-6">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Team: {team.name}</h2>
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-white mb-5">
+            Team · <span className="text-zinc-500 dark:text-zinc-400 font-normal">{team.name}</span>
+          </h2>
 
           {/* Invite code */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Invite code</label>
+          <div className="mb-6">
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide">Invite code</label>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 font-mono text-lg font-bold tracking-widest text-center text-brand-700 dark:text-brand-400">
+              <div className="flex-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 font-mono text-xl font-bold tracking-[0.3em] text-center text-brand-700 dark:text-brand-400 select-all">
                 {team.invite_code}
               </div>
-              <button onClick={copyInviteCode} className="btn-secondary flex items-center gap-1.5">
-                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              <button onClick={copyInviteCode} className="btn-secondary shrink-0">
+                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-1.5">Share this code with teammates to let them join your workspace.</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Share this code with teammates to let them join your workspace.</p>
           </div>
 
-          {/* Members list */}
+          {/* Members */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Members ({members.length})</h3>
-            <div className="space-y-2">
+            <h3 className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide">Members ({members.length})</h3>
+            <div className="space-y-1">
               {members.map((m) => (
-                <div key={m.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <div key={m.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors">
                   <Avatar name={m.profiles?.name} src={m.profiles?.avatar_url} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{m.profiles?.name}</p>
-                    <p className="text-xs text-gray-400">{m.user_id === profile?.id ? 'You' : 'Teammate'}</p>
+                    <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{m.profiles?.name}</p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500">{m.user_id === profile?.id ? 'You' : 'Teammate'}</p>
                   </div>
                   {isAdmin && m.user_id !== profile?.id && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleRemoveMember(m.user_id)}
-                        className="text-xs text-red-500 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleRemoveMember(m.user_id)}
+                      className="text-xs text-red-400 hover:text-red-600 dark:hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      Remove
+                    </button>
                   )}
                 </div>
               ))}

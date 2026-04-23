@@ -52,7 +52,6 @@ export function KanbanView({ tasks, onUpdate, onDelete, onAddTask }) {
 
     const overTask = tasks.find((t) => t.id === over.id)
     const overColumn = TASK_STATUSES.find((s) => s.id === over.id)
-
     const newStatus = overColumn?.id || overTask?.status
     const activeTask = tasks.find((t) => t.id === active.id)
 
@@ -63,7 +62,6 @@ export function KanbanView({ tasks, onUpdate, onDelete, onAddTask }) {
         if (resolved.message) toast.success(resolved.message)
         return
       }
-
       try {
         const { task: updated } = await api.updateTask(team.id, active.id, { status: resolved.status })
         onUpdate(updated)
@@ -79,24 +77,27 @@ export function KanbanView({ tasks, onUpdate, onDelete, onAddTask }) {
       onDragStart={({ active }) => setActiveId(active.id)}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-3 overflow-x-auto pb-4">
         {TASK_STATUSES.map((col) => {
           const colTasks = tasks.filter((t) => t.status === col.id)
           return (
-            <div key={col.id} className="flex-shrink-0 w-72">
-              <div className="flex items-center justify-between mb-3">
+            <div key={col.id} className="flex-shrink-0 w-[272px]">
+              <div className="flex items-center justify-between mb-3 px-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{col.label}</span>
-                  <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 px-2 py-0.5 rounded-full">{colTasks.length}</span>
+                  <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 tracking-tight">{col.label}</span>
+                  <span className="text-[11px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-1.5 py-0.5 rounded-md font-medium">{colTasks.length}</span>
                 </div>
-                <button onClick={() => onAddTask(col.id)} className="p-1 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
-                  <Plus className="w-4 h-4" />
+                <button
+                  onClick={() => onAddTask(col.id)}
+                  className="p-1 text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               <div
                 id={col.id}
-                className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-2 min-h-[200px] space-y-2"
+                className="bg-zinc-50 dark:bg-zinc-800/40 rounded-xl p-2 min-h-[200px] space-y-2 border border-zinc-100 dark:border-zinc-800"
               >
                 <SortableContext items={colTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
                   {colTasks.map((task) => (
@@ -104,7 +105,7 @@ export function KanbanView({ tasks, onUpdate, onDelete, onAddTask }) {
                   ))}
                 </SortableContext>
                 {colTasks.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-8">No tasks</p>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-8">No tasks</p>
                 )}
               </div>
             </div>

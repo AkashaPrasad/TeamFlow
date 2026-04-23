@@ -19,8 +19,6 @@ export function PostCard({ post, onUpdate, onDelete }) {
   const [newComment, setNewComment] = useState('')
   const [comments, setComments] = useState(post.comments || [])
   const [lightbox, setLightbox] = useState(null)
-
-  // Suggest Edit popover state
   const [showSuggestBox, setShowSuggestBox] = useState(false)
   const [suggestion, setSuggestion] = useState('')
   const [sendingSuggestion, setSendingSuggestion] = useState(false)
@@ -67,7 +65,7 @@ export function PostCard({ post, onUpdate, onDelete }) {
     try {
       const { post: updated } = await api.updatePost(team.id, post.id, { status: 'posted' })
       onUpdate?.(updated)
-      toast.success('Marked as Posted!')
+      toast.success('Marked as posted!')
     } catch (err) { toast.error(err.message) }
   }
 
@@ -95,20 +93,20 @@ export function PostCard({ post, onUpdate, onDelete }) {
 
   return (
     <>
-      <GlowingCard className="p-4">
+      <GlowingCard className="p-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-start justify-between gap-3 mb-3.5">
           <div className="flex items-center gap-2.5">
             <Avatar name={post.profiles?.name} src={post.profiles?.avatar_url} size="sm" />
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{post.profiles?.name}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white leading-tight">{post.profiles?.name}</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge color={statusInfo?.color}>{statusInfo?.label}</Badge>
             {(isOwner || isAdmin) && (
-              <button onClick={handleDelete} className="p-1 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+              <button onClick={handleDelete} className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-red-500 dark:hover:text-red-400 transition-colors">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
@@ -122,7 +120,7 @@ export function PostCard({ post, onUpdate, onDelete }) {
               const plat = PLATFORMS.find((p) => p.id === pid)
               const Icon = PLATFORM_ICONS[pid]
               return plat && Icon ? (
-                <span key={pid} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs text-white font-medium" style={{ backgroundColor: plat.color }}>
+                <span key={pid} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs text-white font-medium" style={{ backgroundColor: plat.color }}>
                   <Icon className="w-3 h-3" />
                   {plat.label}
                 </span>
@@ -133,15 +131,15 @@ export function PostCard({ post, onUpdate, onDelete }) {
 
         {/* Caption */}
         {post.caption && (
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 whitespace-pre-wrap leading-relaxed">{post.caption}</p>
+          <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3.5 whitespace-pre-wrap leading-relaxed">{post.caption}</p>
         )}
 
         {/* Images */}
         {images.length > 0 && (
-          <div className={`grid gap-2 mb-3 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+          <div className={`grid gap-2 mb-3.5 ${images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {images.slice(0, 4).map((img, i) => (
               <div key={img.id} className="relative cursor-pointer rounded-lg overflow-hidden" onClick={() => setLightbox(img.url)}>
-                <img src={img.url} alt="" className="w-full h-36 object-cover hover:scale-105 transition-transform duration-300" />
+                <img src={img.url} alt="" className="w-full h-36 object-cover hover:scale-[1.02] transition-transform duration-300" />
                 {i === 3 && images.length > 4 && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-semibold text-lg">+{images.length - 4}</div>
                 )}
@@ -159,72 +157,71 @@ export function PostCard({ post, onUpdate, onDelete }) {
         )}
 
         {/* Reaction bar */}
-        <div className="flex items-center gap-1 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
-          <button onClick={() => react('looks_good')} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors px-2 py-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20">
+        <div className="flex items-center gap-1 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex-wrap">
+          <button onClick={() => react('looks_good')} className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors px-2 py-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
             <ThumbsUp className="w-3.5 h-3.5" />
-            {looksGood > 0 && <span className="font-medium">{looksGood}</span>}
-            Looks Good
+            {looksGood > 0 && <span className="font-semibold">{looksGood}</span>}
+            <span>Looks Good</span>
           </button>
 
-          {/* Suggest Edit — opens inline comment box */}
           <button
             onClick={handleSuggestEdit}
             className={`flex items-center gap-1.5 text-xs transition-colors px-2 py-1.5 rounded-lg ${
               showSuggestBox
-                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                : 'text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+                ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'
             }`}
           >
             <PenLine className="w-3.5 h-3.5" />
-            {suggestEdit > 0 && <span className="font-medium">{suggestEdit}</span>}
-            Suggest Edit
+            {suggestEdit > 0 && <span className="font-semibold">{suggestEdit}</span>}
+            <span>Suggest Edit</span>
           </button>
 
           <div className="flex-1" />
 
           <button
             onClick={() => setShowComments((v) => !v)}
-            className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors px-2 py-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20"
+            className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors px-2 py-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20"
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            {comments.length > 0 && <span className="font-medium">{comments.length}</span>}
+            {comments.length > 0 && <span className="font-semibold">{comments.length}</span>}
             {showComments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
 
           {isOwner && post.status !== 'posted' && (
-            <button onClick={markPosted} className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 hover:text-green-700 transition-colors px-2 py-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20">
+            <button onClick={markPosted} className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors px-2 py-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
               <CheckCircle className="w-3.5 h-3.5" />
               Mark Posted
             </button>
           )}
         </div>
 
-        {/* Suggest Edit inline box */}
+        {/* Suggest Edit inline */}
         <AnimatePresence>
           {showSuggestBox && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.18 }}
+              transition={{ duration: 0.16 }}
               className="overflow-hidden"
             >
-              <form onSubmit={submitSuggestion} className="mt-3 flex gap-2 items-center bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-2.5">
-                <PenLine className="w-4 h-4 text-orange-500 shrink-0" />
+              <form onSubmit={submitSuggestion} className="mt-3 flex gap-2 items-center bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/60 rounded-xl p-2.5">
+                <PenLine className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                 <input
                   ref={suggestInputRef}
                   value={suggestion}
                   onChange={(e) => setSuggestion(e.target.value)}
                   placeholder="What would you change? Press Enter to send…"
-                  className="flex-1 bg-transparent text-xs text-gray-700 dark:text-gray-300 placeholder-gray-400 outline-none"
+                  className="flex-1 bg-transparent text-xs text-zinc-700 dark:text-zinc-300 placeholder-zinc-400 outline-none"
                   onKeyDown={(e) => e.key === 'Escape' && handleSuggestEdit()}
                 />
                 <button
                   type="submit"
                   disabled={sendingSuggestion || !suggestion.trim()}
-                  className="p-1.5 bg-orange-500 text-white rounded-lg disabled:opacity-40 hover:bg-orange-600 transition-colors"
+                  className="p-1.5 bg-amber-500 text-white rounded-lg disabled:opacity-40 hover:bg-amber-600 transition-colors"
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  <Send className="w-3 h-3" />
                 </button>
               </form>
             </motion.div>
@@ -238,25 +235,25 @@ export function PostCard({ post, onUpdate, onDelete }) {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.18 }}
               className="overflow-hidden"
             >
-              <div className="mt-3 space-y-3">
+              <div className="mt-3 space-y-2.5">
                 {comments.map((c) => (
                   <div key={c.id} className="flex items-start gap-2">
                     <Avatar name={c.profiles?.name} size="xs" />
-                    <div className={`flex-1 rounded-xl px-3 py-2 ${c.content.startsWith('✏️') ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{c.profiles?.name} </span>
-                      <span className="text-xs text-gray-600 dark:text-gray-400">{c.content}</span>
+                    <div className={`flex-1 rounded-xl px-3 py-2 ${c.content.startsWith('✏️') ? 'bg-amber-50 dark:bg-amber-900/15 border border-amber-100 dark:border-amber-800/40' : 'bg-zinc-50 dark:bg-zinc-800/50'}`}>
+                      <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">{c.profiles?.name} </span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">{c.content}</span>
                     </div>
                   </div>
                 ))}
-                <form onSubmit={submitComment} className="flex gap-2 mt-2">
+                <form onSubmit={submitComment} className="flex gap-2 mt-1">
                   <input
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a comment…"
-                    className="input text-xs py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-500"
+                    className="input text-xs py-1.5"
                   />
                   <button type="submit" className="btn-primary text-xs px-3 py-1.5">Post</button>
                 </form>
@@ -273,13 +270,15 @@ export function PostCard({ post, onUpdate, onDelete }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out"
             onClick={() => setLightbox(null)}
           >
             <motion.img
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ duration: 0.18 }}
               src={lightbox}
               alt=""
               className="max-w-full max-h-full rounded-xl shadow-2xl"
