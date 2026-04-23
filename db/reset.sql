@@ -1,7 +1,7 @@
 -- ============================================================
--- TeamPost Reset
+-- TeamFlow Reset
 -- Run this first only when you want a clean wipe.
--- WARNING: This drops all TeamPost data, tables, triggers, and helpers.
+-- WARNING: This drops all TeamFlow data, tables, triggers, and helpers.
 -- ============================================================
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

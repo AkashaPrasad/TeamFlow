@@ -27,14 +27,14 @@ export function Sidebar({ open, onClose }) {
   }
 
   const content = (
-    <div className="w-[220px] h-full bg-white dark:bg-zinc-950 border-r border-zinc-100 dark:border-zinc-800/60 flex flex-col">
+    <div className="safe-top safe-bottom flex h-full w-[min(86vw,240px)] flex-col border-r border-zinc-100 bg-white dark:border-zinc-800/60 dark:bg-zinc-950 lg:w-[220px]">
       {/* Team header */}
-      <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/60 shrink-0">
+      <div className="flex min-h-14 items-center justify-between border-b border-zinc-100 px-4 dark:border-zinc-800/60 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <BrandLogo size="sm" />
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-zinc-900 dark:text-white truncate leading-tight">
-              {team?.name || 'TeamPost'}
+              {team?.name || 'TeamFlow'}
             </p>
             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">Workspace</p>
           </div>
@@ -100,7 +100,7 @@ export function Sidebar({ open, onClose }) {
           <Avatar name={profile?.name} src={profile?.avatar_url} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium text-zinc-900 dark:text-white truncate leading-tight">{profile?.name}</p>
-            <p className="text-[10px] text-zinc-400 dark:text-zinc-500">Member</p>
+            <p className="text-[10px] text-zinc-400 dark:text-zinc-500">Personal</p>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); handleSignOut() }}
@@ -117,7 +117,7 @@ export function Sidebar({ open, onClose }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex shrink-0 h-screen">
+      <aside className="hidden lg:flex shrink-0 h-[100dvh]">
         {content}
       </aside>
 
@@ -138,7 +138,7 @@ export function Sidebar({ open, onClose }) {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-              className="fixed left-0 top-0 z-50 h-full lg:hidden shadow-2xl shadow-black/20"
+              className="fixed left-0 top-0 z-50 h-[100dvh] lg:hidden shadow-2xl shadow-black/20"
             >
               {content}
             </motion.aside>

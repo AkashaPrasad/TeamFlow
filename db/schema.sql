@@ -1,5 +1,5 @@
 -- ============================================================
--- TeamPost Master Schema
+-- TeamFlow Master Schema
 -- Run this after reset.sql, or rerun it by itself to converge
 -- the database safely to the latest schema/policies/triggers.
 -- ============================================================

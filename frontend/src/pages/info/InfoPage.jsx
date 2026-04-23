@@ -295,7 +295,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
     if (!file) return
     setUploading(true)
     try {
-      const { url } = await uploadToCloudinary(file, 'teampost/info')
+      const { url } = await uploadToCloudinary(file, 'teamflow/info')
       setContent(url)
     } catch (err) {
       toast.error(err.message)
@@ -309,7 +309,7 @@ function CreateInfoModal({ open, onClose, onCreated, tasks }) {
     if (!file) return
     setUploading(true)
     try {
-      const result = await uploadFileToCloudinary(file, 'teampost/info')
+      const result = await uploadFileToCloudinary(file, 'teamflow/info')
       setContent(result.url)
     } catch (err) {
       toast.error(err.message)

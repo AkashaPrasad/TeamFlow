@@ -142,22 +142,22 @@ export default function Work() {
   ]
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="page-container-mobile">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="section-title">Tasks</h2>
           <p className="section-subtitle mt-0.5">{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:justify-end">
           {/* View toggle */}
-          <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1 gap-0.5">
+          <div className="flex min-w-0 flex-1 items-center gap-0.5 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800 sm:flex-initial">
             {views.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
                 onClick={() => setView(id)}
                 className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150',
+                  'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-150 sm:flex-initial sm:px-2.5 sm:py-1.5',
                   view === id
                     ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
@@ -173,14 +173,13 @@ export default function Work() {
             className="btn-primary"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Task</span>
-            <span className="sm:hidden">New</span>
+            <span>New Task</span>
           </button>
         </div>
       </div>
 
       {/* Mode tabs */}
-      <div className="flex gap-0.5 mb-4 border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto">
+      <div className="mobile-scroll-row mb-4 border-b border-zinc-200 dark:border-zinc-800">
         {MODE_OPTIONS.map((m) => (
           <button
             key={m.id}
@@ -198,14 +197,14 @@ export default function Work() {
       </div>
 
       {/* Filters + sort */}
-      <div className="flex items-center gap-2 mb-5 flex-wrap">
-        <span className="flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500">
+      <div className="mobile-scroll-row -mx-4 mb-5 px-4 sm:mx-0 sm:px-0">
+        <span className="flex shrink-0 items-center gap-1 px-1 text-xs text-zinc-400 dark:text-zinc-500">
           <Filter className="w-3.5 h-3.5" />
         </span>
         <select
           value={filters.priority}
           onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
-          className="text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-zinc-900 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 appearance-none cursor-pointer transition-all duration-150"
+          className="min-h-[42px] min-w-[144px] shrink-0 appearance-none cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
         >
           <option value="">All priorities</option>
           {TASK_PRIORITIES.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -214,20 +213,20 @@ export default function Work() {
           <select
             value={filters.status}
             onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            className="text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-zinc-900 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 appearance-none cursor-pointer transition-all duration-150"
+            className="min-h-[42px] min-w-[144px] shrink-0 appearance-none cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
           >
             <option value="">All statuses</option>
             {TASK_STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
         )}
 
-        <span className="flex items-center gap-1 ml-1 text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="ml-1 flex shrink-0 items-center gap-1 px-1 text-xs text-zinc-400 dark:text-zinc-500">
           <ArrowUpDown className="w-3.5 h-3.5" />
         </span>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-zinc-900 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 appearance-none cursor-pointer transition-all duration-150"
+          className="min-h-[42px] min-w-[144px] shrink-0 appearance-none cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
         >
           {SORT_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
@@ -235,7 +234,7 @@ export default function Work() {
         {activeFilters && (
           <button
             onClick={() => setFilters({ priority: '', status: '' })}
-            className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+            className="shrink-0 rounded-xl border border-zinc-200 px-3 py-2 text-xs text-zinc-500 transition-colors hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
           >
             Clear
           </button>

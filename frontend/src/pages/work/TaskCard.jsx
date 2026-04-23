@@ -243,7 +243,7 @@ export function TaskCard({
     <>
       <div
         className={cn(
-          'card p-4 cursor-pointer transition-all duration-200',
+          'card cursor-pointer p-4 transition-all duration-200',
           'hover:border-zinc-200 dark:hover:border-zinc-700 hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)] dark:hover:shadow-[0_2px_8px_rgba(0,0,0,0.2)]',
           expanded && 'ring-1 ring-brand-200 dark:ring-brand-900/40 border-brand-200/60 dark:border-brand-900/40'
         )}
@@ -287,34 +287,37 @@ export function TaskCard({
             ) : null}
           </div>
 
-          <div className="flex items-start justify-between gap-3 sm:justify-end" onClick={(event) => event.stopPropagation()}>
-            <div className="min-w-0 text-left sm:min-w-[150px] sm:text-right">
-              {task.creator ? (
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 sm:justify-end">
-                  <User className="w-3 h-3 shrink-0" />
-                  <span className="truncate">by {task.creator.name}</span>
-                </div>
-              ) : null}
-              {isMultiAssigned ? (
-                <div className="mt-1 flex items-center gap-2 sm:justify-end">
-                  <AssigneeStack assignments={taskAssignments} />
-                  <span className="text-xs text-zinc-400">{taskAssignments.length}</span>
-                </div>
-              ) : task.profiles ? (
-                <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400 sm:justify-end">
-                  <span className="truncate">{task.profiles.name}</span>
-                  <Avatar name={task.profiles.name} src={task.profiles.avatar_url} size="xs" />
-                </div>
-              ) : null}
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[220px] sm:items-end" onClick={(event) => event.stopPropagation()}>
+            <div className="flex min-w-0 items-start justify-between gap-3 sm:w-full sm:justify-end">
+              <div className="min-w-0 text-left sm:text-right">
+                {task.creator ? (
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 sm:justify-end">
+                    <User className="w-3 h-3 shrink-0" />
+                    <span className="truncate">by {task.creator.name}</span>
+                  </div>
+                ) : null}
+                {isMultiAssigned ? (
+                  <div className="mt-1 flex items-center gap-2 sm:justify-end">
+                    <AssigneeStack assignments={taskAssignments} />
+                    <span className="text-xs text-zinc-400">{taskAssignments.length}</span>
+                  </div>
+                ) : task.profiles ? (
+                  <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400 sm:justify-end">
+                    <span className="truncate">{task.profiles.name}</span>
+                    <Avatar name={task.profiles.name} src={task.profiles.avatar_url} size="xs" />
+                  </div>
+                ) : null}
+              </div>
+              <ChevronDown className={`mt-0.5 h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+            <div className="flex flex-wrap items-center justify-end gap-1.5 sm:max-w-[280px]">
               {reorderEnabled && dragHandleProps ? (
                 <button
                   type="button"
                   {...dragHandleProps}
                   onClick={(event) => event.stopPropagation()}
-                  className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-300 transition-colors cursor-grab active:cursor-grabbing touch-none"
+                  className="order-4 cursor-grab touch-none p-1 text-zinc-300 transition-colors active:cursor-grabbing hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-300 sm:order-none"
                   title="Drag to reorder"
                 >
                   <GripVertical className="w-3.5 h-3.5" />
@@ -322,7 +325,7 @@ export function TaskCard({
               ) : null}
               <button
                 onClick={openChat}
-                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 px-2 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 hover:border-brand-300 dark:hover:border-brand-700 transition-all duration-150"
+                className="inline-flex min-h-[38px] items-center gap-1 rounded-xl border border-zinc-200 px-2.5 py-1.5 text-[11px] font-medium text-zinc-500 transition-all duration-150 hover:border-brand-300 hover:text-brand-600 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-brand-700 dark:hover:text-brand-400"
                 title="Team chat"
               >
                 <MessageSquare className="w-3 h-3" />
@@ -332,7 +335,7 @@ export function TaskCard({
                 <select
                   value={selectedStatusValue}
                   onChange={(event) => handleStatusChange(event.target.value)}
-                  className="text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1 bg-white dark:bg-zinc-900 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all duration-150 cursor-pointer"
+                  className="min-h-[38px] min-w-[132px] flex-1 cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 sm:flex-initial"
                 >
                   {visibleStatusOptions.map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
@@ -342,18 +345,17 @@ export function TaskCard({
               {canEdit ? (
                 <button
                   onClick={() => setShowEditModal(true)}
-                  className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
+                  className="p-2 text-zinc-300 transition-colors hover:text-brand-500 dark:text-zinc-600 dark:hover:text-brand-400"
                   title="Edit ticket"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
               ) : null}
               {canDelete ? (
-                <button onClick={handleDelete} className="p-1 text-zinc-300 dark:text-zinc-600 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="Delete ticket">
+                <button onClick={handleDelete} className="p-2 text-zinc-300 transition-colors hover:text-red-500 dark:text-zinc-600 dark:hover:text-red-400" title="Delete ticket">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               ) : null}
-              <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </div>
           </div>
         </div>

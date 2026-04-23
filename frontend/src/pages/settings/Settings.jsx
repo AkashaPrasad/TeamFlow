@@ -21,7 +21,7 @@ export default function Settings() {
     if (!file) return
     setUploadingPhoto(true)
     try {
-      const { url } = await uploadToCloudinary(file, 'teampost/avatars')
+      const { url } = await uploadToCloudinary(file, 'teamflow/avatars')
       await updateProfile({ avatar_url: url })
       toast.success('Profile photo updated!')
     } catch (err) {

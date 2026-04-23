@@ -45,7 +45,7 @@ export default function Signup() {
         <div className="text-center mb-8">
           <BrandLogo size="lg" className="justify-center mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create your account</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Get started with TeamPost today</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Get started with TeamFlow today</p>
         </div>
 
         <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl p-8 space-y-5">

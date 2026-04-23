@@ -1,6 +1,6 @@
-# TeamPost
+# TeamFlow
 
-TeamPost is a frontend-first team collaboration app for managing social posts, tickets, projects, and shared team knowledge in one workspace. It uses Supabase for auth, database, realtime sync, and row-level security, with Cloudinary for image uploads.
+TeamFlow is a frontend-first team collaboration app for managing social posts, tickets, projects, and shared team knowledge in one workspace. It uses Supabase for auth, database, realtime sync, and row-level security, with Cloudinary for image uploads.
 
 ## What It Does
 

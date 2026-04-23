@@ -1,4 +1,4 @@
-const CACHE = 'teampost-v2'
+const CACHE = 'teamflow-v3'
 const PRECACHE = [
   '/',
   '/manifest.json',

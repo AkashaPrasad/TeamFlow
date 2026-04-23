@@ -219,7 +219,7 @@ export default function Chat() {
     if (!file) return
     setUploadingFile(true)
     try {
-      const result = await uploadFileToCloudinary(file, 'teampost/chat')
+      const result = await uploadFileToCloudinary(file, 'teamflow/chat')
       setPendingFile(result)
     } catch (err) {
       toast.error(err.message)

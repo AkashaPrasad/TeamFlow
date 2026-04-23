@@ -1,6 +1,6 @@
 -- ============================================================
--- TeamPost Task Chat Patch
--- Run this on an existing TeamPost database to enable
+-- TeamFlow Task Chat Patch
+-- Run this on an existing TeamFlow database to enable
 -- task chat safely without resetting anything.
 -- Idempotent: safe to rerun.
 -- ============================================================

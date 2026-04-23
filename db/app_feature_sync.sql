@@ -1,5 +1,5 @@
 -- ============================================================
--- TeamPost App Feature Sync
+-- TeamFlow App Feature Sync
 -- Run this on an existing database without reset.
 -- Safe to rerun.
 -- ============================================================
