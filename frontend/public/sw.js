@@ -1,11 +1,12 @@
-const CACHE = 'teamflow-v3'
+const CACHE = 'teamflow-shell-v4'
 const PRECACHE = [
-  '/',
   '/manifest.json',
   '/favicon.ico',
   '/apple-touch-icon.png',
   '/android-chrome-192x192.png',
   '/android-chrome-512x512.png',
+  '/favicon-32x32.png',
+  '/favicon-16x16.png',
 ]
 
 self.addEventListener('install', (e) => {
@@ -25,10 +26,22 @@ self.addEventListener('activate', (e) => {
 })
 
 self.addEventListener('fetch', (e) => {
-  // Only cache GET requests for same-origin pages/assets
   if (e.request.method !== 'GET') return
+
   const url = new URL(e.request.url)
   if (url.origin !== self.location.origin) return
+
+  // Always fetch the latest HTML/app shell when navigating.
+  if (e.request.mode === 'navigate' || e.request.destination === 'document') {
+    e.respondWith(fetch(e.request, { cache: 'no-store' }))
+    return
+  }
+
+  const shouldCache =
+    PRECACHE.includes(url.pathname) ||
+    ['script', 'style', 'image', 'font', 'manifest'].includes(e.request.destination)
+
+  if (!shouldCache) return
 
   e.respondWith(
     caches.match(e.request).then((cached) => {
