@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --white: #ffffff;
+    --black: #000000;
+    --transparent: transparent;
+    --brand-300: #a5b4fc;
+    --brand-400: #818cf8;
+    --brand-500: #6366f1;
+    --violet-300: #c4b5fd;
+    --violet-500: #8b5cf6;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { @apply scroll-smooth; }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+  }
+
+  .dark body {
+    @apply bg-gray-950 text-gray-100;
+  }
+
+  /* Dark mode base overrides */
+  .dark {
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-600 text-white px-4 py-2 rounded-lg font-medium text-sm
+           hover:bg-brand-700 active:bg-brand-800 transition-colors
+           disabled:opacity-50 disabled:cursor-not-allowed
+           shadow-sm shadow-brand-500/20;
+  }
+  .btn-secondary {
+    @apply bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200
+           border border-gray-200 dark:border-gray-700
+           px-4 py-2 rounded-lg font-medium text-sm
+           hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply text-gray-600 dark:text-gray-400 px-3 py-2 rounded-lg text-sm
+           hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors;
+  }
+  .input {
+    @apply w-full px-3 py-2 border border-gray-200 dark:border-gray-700
+           rounded-lg text-sm bg-white dark:bg-gray-800
+           text-gray-900 dark:text-gray-100
+           placeholder-gray-400 dark:placeholder-gray-500
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
+           transition-all;
+  }
+  .card {
+    @apply bg-white dark:bg-gray-800/80 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm;
+  }
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .page-container {
+    @apply p-6 max-w-5xl mx-auto;
+  }
+  .section-title {
+    @apply text-xl font-semibold text-gray-900 dark:text-white;
+  }
+  .section-subtitle {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-gray-200 dark:bg-gray-700 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-gray-300 dark:bg-gray-600; }
+
+/* Select dark mode */
+.dark select option {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+/* Aurora CSS vars */
+.dark .aurora-bg {
+  --aurora-color-1: #6366f1;
+  --aurora-color-2: #8b5cf6;
+  --aurora-color-3: #a78bfa;
+}
+
+/* Mobile safe-area support */
+@supports (padding: max(0px)) {
+  .safe-bottom { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+}
+
+/* Prevent iOS bounce on fixed elements */
+html, body { overscroll-behavior: none; }
