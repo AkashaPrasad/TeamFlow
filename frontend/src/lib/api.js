@@ -1,5 +1,13 @@
 import { supabase } from './supabase'
 
+const TASK_SELECT = `
+  *,
+  profiles!assignee_id(id, name, avatar_url),
+  creator:profiles!created_by(id, name, avatar_url),
+  projects(id, name),
+  task_comments(*, profiles(*))
+`
+
 function randomInviteCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
 }
@@ -7,6 +15,16 @@ function randomInviteCode() {
 async function currentUserId() {
   const { data: { user } } = await supabase.auth.getUser()
   return user?.id
+}
+
+async function fetchTaskById(taskId) {
+  const { data: task, error } = await supabase
+    .from('tasks')
+    .select(TASK_SELECT)
+    .eq('id', taskId)
+    .single()
+  if (error) throw new Error(error.message)
+  return task
 }
 
 export const api = {
@@ -156,7 +174,7 @@ export const api = {
     const userId = await currentUserId()
     let query = supabase
       .from('tasks')
-      .select('*, profiles!assignee_id(id, name, avatar_url), creator:profiles!created_by(id, name, avatar_url), projects(id, name), task_comments(*, profiles(*))')
+      .select(TASK_SELECT)
       .eq('team_id', teamId)
       .order('created_at', { ascending: false })
 
@@ -193,23 +211,17 @@ export const api = {
     })
     if (createError) throw new Error(createError.message)
 
-    const { data: task, error } = await supabase
-      .from('tasks')
-      .select('*, profiles!assignee_id(id, name, avatar_url), creator:profiles!created_by(id, name, avatar_url), projects(id, name), task_comments(*, profiles(*))')
-      .eq('id', createdTask.id)
-      .single()
-    if (error) throw new Error(error.message)
+    const task = await fetchTaskById(createdTask.id)
     return { task }
   },
 
   updateTask: async (teamId, taskId, data) => {
-    const { data: task, error } = await supabase
+    const { error } = await supabase
       .from('tasks')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', taskId)
-      .select('*, profiles!assignee_id(id, name, avatar_url), creator:profiles!created_by(id, name, avatar_url), projects(id, name), task_comments(*, profiles(*))')
-      .single()
     if (error) throw new Error(error.message)
+    const task = await fetchTaskById(taskId)
     return { task }
   },
 
@@ -220,14 +232,13 @@ export const api = {
   },
 
   addTaskComment: async (taskId, content) => {
-    const userId = await currentUserId()
-    const { data: comment, error } = await supabase
-      .from('task_comments')
-      .insert({ task_id: taskId, author_id: userId, content })
-      .select('*, profiles(*)')
-      .single()
+    const { data: comment, error } = await supabase.rpc('create_task_comment', {
+      p_task_id: taskId,
+      p_content: content,
+    })
     if (error) throw new Error(error.message)
-    return { comment }
+    const task = await fetchTaskById(taskId)
+    return { comment, task }
   },
 
   // ── Projects ───────────────────────────────────────────────────

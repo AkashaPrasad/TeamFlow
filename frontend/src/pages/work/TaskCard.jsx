@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, isPast, parseISO } from 'date-fns'
-import { Calendar, ChevronDown, Pencil, Send, Trash2, User, X } from 'lucide-react'
+import { Calendar, ChevronDown, MessageSquare, Pencil, Send, Trash2, User, X } from 'lucide-react'
 import { Avatar } from '../../components/ui/Avatar'
 import { Badge } from '../../components/ui/Badge'
 import { TASK_PRIORITIES, TASK_STATUSES } from '../../lib/constants'
@@ -23,7 +23,10 @@ export function TaskCard({ task, onUpdate, onDelete, compact = false }) {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editProjects, setEditProjects] = useState(task.projects ? [task.projects] : [])
   const [reason, setReason] = useState('')
+  const [chatMessage, setChatMessage] = useState('')
+  const [chatOpen, setChatOpen] = useState(false)
   const [submittingReason, setSubmittingReason] = useState(false)
+  const [submittingChat, setSubmittingChat] = useState(false)
 
   const priorityInfo = TASK_PRIORITIES.find((p) => p.id === task.priority)
   const statusInfo = TASK_STATUSES.find((s) => s.id === task.status)
@@ -100,6 +103,25 @@ export function TaskCard({ task, onUpdate, onDelete, compact = false }) {
     }
   }
 
+  async function submitChat(e) {
+    e.preventDefault()
+    const message = chatMessage.trim()
+    if (!message) return
+
+    setSubmittingChat(true)
+    try {
+      const { task: updated } = await api.addTaskComment(task.id, message)
+      onUpdate?.(updated)
+      setChatMessage('')
+      setChatOpen(true)
+      setExpanded(true)
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setSubmittingChat(false)
+    }
+  }
+
   async function handleDelete() {
     if (!confirm('Delete this task?')) return
     try {
@@ -114,6 +136,11 @@ export function TaskCard({ task, onUpdate, onDelete, compact = false }) {
     onUpdate?.(updated)
     setShowEditModal(false)
     setExpanded(true)
+  }
+
+  function openChat() {
+    setExpanded(true)
+    setChatOpen(true)
   }
 
   if (compact) {
@@ -208,6 +235,14 @@ export function TaskCard({ task, onUpdate, onDelete, compact = false }) {
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                onClick={openChat}
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 px-2 py-1 text-[11px] font-medium text-gray-500 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                title="Open team chat"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>{comments.length}</span>
+              </button>
               {canChangeStatus ? (
                 <select
                   value={selectedStatusValue}
@@ -248,9 +283,42 @@ export function TaskCard({ task, onUpdate, onDelete, compact = false }) {
             )}
 
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Activity</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Team Chat</p>
+                <span className="text-[11px] text-gray-400">
+                  {comments.length} {comments.length === 1 ? 'message' : 'messages'}
+                </span>
+              </div>
+              <form
+                onSubmit={submitChat}
+                className={`mt-2 flex gap-2 items-center rounded-xl border p-2.5 ${
+                  isLockedForAssignee
+                    ? 'border-orange-200 bg-orange-50 dark:border-orange-900/40 dark:bg-orange-900/10'
+                    : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50'
+                }`}
+              >
+                <input
+                  autoFocus={chatOpen}
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  disabled={isLockedForAssignee || submittingChat}
+                  placeholder={
+                    isLockedForAssignee
+                      ? 'This ticket is locked for you until the creator reopens it.'
+                      : 'Comment on this ticket'
+                  }
+                  className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 outline-none disabled:cursor-not-allowed"
+                />
+                <button
+                  type="submit"
+                  disabled={isLockedForAssignee || submittingChat || !chatMessage.trim()}
+                  className="p-1.5 bg-brand-600 text-white rounded-lg disabled:opacity-40 hover:bg-brand-700 transition-colors"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
               {comments.length === 0 ? (
-                <p className="mt-2 text-sm text-gray-400">No updates yet.</p>
+                <p className="mt-2 text-sm text-gray-400">No messages yet.</p>
               ) : (
                 <div className="mt-2 space-y-2">
                   {comments.map((comment) => {

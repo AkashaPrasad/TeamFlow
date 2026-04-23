@@ -241,6 +241,7 @@ CREATE INDEX IF NOT EXISTS idx_project_members_user_id ON public.project_members
 CREATE INDEX IF NOT EXISTS idx_tasks_team_id ON public.tasks(team_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON public.tasks(project_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee_id ON public.tasks(assignee_id);
+CREATE INDEX IF NOT EXISTS idx_task_comments_task_id_created_at ON public.task_comments(task_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_info_items_team_id ON public.info_items(team_id);
 
@@ -467,6 +468,26 @@ AS $$
   )
 $$;
 
+CREATE OR REPLACE FUNCTION public.can_comment_on_task(p_task_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.tasks t
+    WHERE t.id = p_task_id
+      AND public.can_access_task(t.id)
+      AND NOT (
+        t.status = 'couldnt_do'
+        AND t.assignee_id = auth.uid()
+        AND t.created_by <> auth.uid()
+      )
+  )
+$$;
+
 CREATE OR REPLACE FUNCTION public.create_task(
   p_team_id UUID,
   p_title TEXT,
@@ -533,6 +554,50 @@ BEGIN
   RETURNING * INTO v_task;
 
   RETURN v_task;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.create_task_comment(
+  p_task_id UUID,
+  p_content TEXT
+)
+RETURNS public.task_comments
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_comment public.task_comments;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  IF p_content IS NULL OR btrim(p_content) = '' THEN
+    RAISE EXCEPTION 'Comment required';
+  END IF;
+
+  IF NOT public.can_access_task(p_task_id) THEN
+    RAISE EXCEPTION 'You cannot access this task';
+  END IF;
+
+  IF NOT public.can_comment_on_task(p_task_id) THEN
+    RAISE EXCEPTION 'This ticket is locked for you until the creator reopens or reassigns it';
+  END IF;
+
+  INSERT INTO public.task_comments (
+    task_id,
+    author_id,
+    content
+  )
+  VALUES (
+    p_task_id,
+    auth.uid(),
+    btrim(p_content)
+  )
+  RETURNING * INTO v_comment;
+
+  RETURN v_comment;
 END;
 $$;
 
@@ -934,7 +999,7 @@ CREATE POLICY "Team members read task comments" ON public.task_comments
 CREATE POLICY "Team members add task comments" ON public.task_comments
   FOR INSERT WITH CHECK (
     auth.uid() = author_id
-    AND public.can_access_task(task_id)
+    AND public.can_comment_on_task(task_id)
   );
 
 CREATE POLICY "Authors delete own task comments" ON public.task_comments

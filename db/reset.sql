@@ -35,6 +35,8 @@ DROP FUNCTION IF EXISTS public.can_access_post(UUID);
 DROP FUNCTION IF EXISTS public.can_modify_post(UUID);
 DROP FUNCTION IF EXISTS public.can_access_task(UUID);
 DROP FUNCTION IF EXISTS public.can_modify_task(UUID);
+DROP FUNCTION IF EXISTS public.can_comment_on_task(UUID);
 DROP FUNCTION IF EXISTS public.create_task(UUID, TEXT, TEXT, UUID, TEXT, TEXT, TEXT, DATE, UUID);
+DROP FUNCTION IF EXISTS public.create_task_comment(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.create_project(UUID, TEXT, TEXT, TEXT[], DATE, DATE, TEXT[], TEXT, TEXT, TEXT, UUID[]);
 DROP FUNCTION IF EXISTS public.update_project(UUID, UUID, TEXT, TEXT, TEXT[], DATE, DATE, TEXT[], TEXT, TEXT, TEXT, UUID[]);
