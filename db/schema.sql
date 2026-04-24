@@ -607,6 +607,62 @@ AS $$
   )
 $$;
 
+CREATE OR REPLACE FUNCTION public.create_post(
+  p_team_id UUID,
+  p_caption TEXT DEFAULT NULL,
+  p_platforms TEXT[] DEFAULT NULL,
+  p_visibility TEXT DEFAULT 'team',
+  p_status TEXT DEFAULT 'draft',
+  p_scheduled_at TIMESTAMPTZ DEFAULT NULL
+)
+RETURNS public.posts
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_post public.posts;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  IF NOT public.is_user_in_team(p_team_id, auth.uid()) THEN
+    RAISE EXCEPTION 'You are not a member of this team';
+  END IF;
+
+  IF COALESCE(p_visibility, 'team') NOT IN ('private', 'team') THEN
+    RAISE EXCEPTION 'Invalid post visibility';
+  END IF;
+
+  IF COALESCE(p_status, 'draft') NOT IN ('draft', 'pending_review', 'approved', 'posted') THEN
+    RAISE EXCEPTION 'Invalid post status';
+  END IF;
+
+  INSERT INTO public.posts (
+    team_id,
+    author_id,
+    caption,
+    platforms,
+    visibility,
+    status,
+    scheduled_at
+  )
+  VALUES (
+    p_team_id,
+    auth.uid(),
+    NULLIF(btrim(COALESCE(p_caption, '')), ''),
+    COALESCE(p_platforms, '{}'::TEXT[]),
+    COALESCE(p_visibility, 'team'),
+    COALESCE(p_status, 'draft'),
+    p_scheduled_at
+  )
+  RETURNING * INTO v_post;
+
+  RETURN v_post;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.create_task(
   p_team_id UUID,
   p_title TEXT,

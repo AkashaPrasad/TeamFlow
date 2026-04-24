@@ -9,6 +9,14 @@ const TASK_SELECT = `
   task_assignees(*, assignee:profiles!user_id(id, name, avatar_url))
 `
 
+const POST_SELECT = `
+  *,
+  profiles(*),
+  post_images(*),
+  post_reactions(*),
+  comments(*, profiles(*))
+`
+
 const MESSAGE_SELECT = `
   *,
   sender:profiles!sender_id(id, name, avatar_url)
@@ -31,6 +39,16 @@ async function fetchTaskById(taskId) {
     .single()
   if (error) throw new Error(error.message)
   return task
+}
+
+async function fetchPostById(postId) {
+  const { data: post, error } = await supabase
+    .from('posts')
+    .select(POST_SELECT)
+    .eq('id', postId)
+    .single()
+  if (error) throw new Error(error.message)
+  return post
 }
 
 function sortTasksByOrder(tasks) {
@@ -109,7 +127,7 @@ export const api = {
   getPosts: async (teamId, params = {}) => {
     let query = supabase
       .from('posts')
-      .select('*, profiles(*), post_images(*), post_reactions(*), comments(*, profiles(*))')
+      .select(POST_SELECT)
       .eq('team_id', teamId)
       .order('created_at', { ascending: false })
 
@@ -123,19 +141,25 @@ export const api = {
   },
 
   createPost: async (teamId, data) => {
-    const userId = await currentUserId()
     const { image_urls = [], ...postData } = data
-    const { data: post, error } = await supabase
-      .from('posts')
-      .insert({ ...postData, team_id: teamId, author_id: userId })
-      .select('*, profiles(*)')
-      .single()
+    const { data: createdPost, error } = await supabase.rpc('create_post', {
+      p_team_id: teamId,
+      p_caption: postData.caption ?? null,
+      p_platforms: postData.platforms ?? [],
+      p_visibility: postData.visibility ?? 'team',
+      p_status: postData.status ?? 'draft',
+      p_scheduled_at: postData.scheduled_at ?? null,
+    })
     if (error) throw new Error(error.message)
+
     if (image_urls.length > 0) {
-      await supabase
+      const { error: imageError } = await supabase
         .from('post_images')
-        .insert(image_urls.map((url) => ({ post_id: post.id, url })))
+        .insert(image_urls.map((url) => ({ post_id: createdPost.id, url })))
+      if (imageError) throw new Error(imageError.message)
     }
+
+    const post = await fetchPostById(createdPost.id)
     return { post }
   },
 
@@ -144,7 +168,7 @@ export const api = {
       .from('posts')
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq('id', postId)
-      .select('*, profiles(*), post_images(*), post_reactions(*), comments(*, profiles(*))')
+      .select(POST_SELECT)
       .single()
     if (error) throw new Error(error.message)
     return { post }
